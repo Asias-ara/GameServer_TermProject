@@ -1,22 +1,10 @@
-#pragma comment(lib, "ws2_32")
-
-#define _WINSOCK_DEPRECATED_NO_WARNINGS
-
-#include <iostream>
-#include <WinSock2.h>
-#include <stdlib.h>
-#include <fstream>
-#include "protocol.h"
-
-#define BUFSIZE 2048
-
-using namespace std;
-
+#include"header.h"
+#include"Player.h"
 // 전역변수
 HANDLE			hEvent;				// 이벤트 핸들
 int				thread_count = 0;	// 몇개의 클라이언트가 접속했는지(몇개의 클라이언트 쓰레드가 만들어졌는지) 파악
 int				g_id = 0;			// 각 클라이언트에게 id부여
-
+unordered_map<int, Player>g_clients;
 // 함수선언
 DWORD WINAPI	ProcessClient(LPVOID arg);			// 클라이언트 쓰레드
 DWORD WINAPI	ControlClinet(LPVOID arg);			// 클라이언트를 제어하는 쓰레드
@@ -207,4 +195,17 @@ void send_start_game_packet(SOCKET* client_socket, int client_id)
 	packet.size = sizeof(packet);
 	packet.type = SC_PACKET_START_GAME;
 	send(*client_socket, reinterpret_cast<const char*>(&packet), sizeof(packet), 0);
+}
+
+void send_move_packet(SOCKET* client_socket, int client_id)
+{
+	sc_packet_move packet;
+	packet.size = sizeof(packet);
+	packet.type = SC_PACKET_MOVE;
+	packet.pos_x = g_clients[client_id].m_pos_x;
+	packet.pos_y = g_clients[client_id].m_pos_y;
+	packet.aim_x = g_clients[client_id].m_aim_x;
+	packet.aim_y = g_clients[client_id].m_aim_y;
+	packet.id = client_id;
+	send(*client_socket, reinterpret_cast<const char*>(&packet), packet.size, 0);
 }
