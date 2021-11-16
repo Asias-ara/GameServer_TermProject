@@ -5,7 +5,7 @@ HANDLE			hEvent;				// 이벤트 핸들
 int				thread_count = 0;	// 몇개의 클라이언트가 접속했는지(몇개의 클라이언트 쓰레드가 만들어졌는지) 파악
 int				g_id = 0;			// 각 클라이언트에게 id부여
 unordered_map<int, Player>g_clients;
-
+bool			start_game = false;
 // 함수선언
 DWORD WINAPI	ProcessClient(LPVOID arg);			// 클라이언트 쓰레드
 DWORD WINAPI	ControlClinet(LPVOID arg);			// 클라이언트를 제어하는 쓰레드
@@ -150,11 +150,9 @@ DWORD WINAPI ProcessClient(LPVOID arg)
 	cout << id << endl;
 	// 클라이언트와 데이터 통신
 	while (1) {
-		WaitForSingleObject(hEvent, INFINITE);
-		recv(client_sock, buf, len, 0);
+		if (start_game == false) continue;
+		retval = recv(client_sock, buf, len, 0);
 		process_client(id, buf);
-
-		SetEvent(hEvent);
 	}
 
 	// 서버의 콘솔창에 접속 종료를 띄울경우 주석 풀기
@@ -236,11 +234,14 @@ void process_client(int client_id, char* p)
 		break;
 	}
 	case CS_PACKET_AIM: {
-
+		cs_packet_aim* packet = reinterpret_cast<cs_packet_aim*>(p);
+		cl.m_aim_x = packet->x;
+		cl.m_aim_y = packet->y;
 		break;
 	}
 	case CS_PACKET_ATTACK:
-
+		//bullet서버객체 제작후 넣기
+		cout <<" id: " << client_id << "발사확인" << endl;
 		break;
 	}
 }
