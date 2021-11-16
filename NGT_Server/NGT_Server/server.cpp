@@ -5,6 +5,7 @@ HANDLE			hEvent;				// 이벤트 핸들
 int				thread_count = 0;	// 몇개의 클라이언트가 접속했는지(몇개의 클라이언트 쓰레드가 만들어졌는지) 파악
 int				g_id = 0;			// 각 클라이언트에게 id부여
 unordered_map<int, Player>g_clients;
+
 // 함수선언
 DWORD WINAPI	ProcessClient(LPVOID arg);			// 클라이언트 쓰레드
 DWORD WINAPI	ControlClinet(LPVOID arg);			// 클라이언트를 제어하는 쓰레드
@@ -12,7 +13,7 @@ void			gameStart();						// 게임 시작 처리
 void			send_login_ok_packet(SOCKET* client_socket, int client_id);					// 로그인 성공을 알려주는 패킷 전송
 void			send_other_info_packet(SOCKET* client_socket, int client_id, int other_id);	// 다른 클라이언트의 정보 패킷 전송
 void			send_start_game_packet(SOCKET* client_socket, int client_id);				// 게임이 시작하면 모든 클라이언트에게 패킷 전송	
-
+void			process_client(int client_id, char* p);
 
 void err_display(const char* msg)
 {
@@ -134,25 +135,24 @@ DWORD WINAPI ProcessClient(LPVOID arg)
 	int retval; // 오류 검출 변수
 
 	// 전달된 소켓 저장
-	SOCKET client_sock = (SOCKET)arg;
+	Player* player = (Player*)arg;
+	SOCKET& client_sock = player->m_c_socket;
 	SOCKADDR_IN client_addr;
 	int addrlen;
 	char* buf;
 	int len;
-	int id = thread_count;
+	int id = player->m_id;
 
-	// 클라이언트 정보 얻기
-	addrlen = sizeof(client_addr);
-	getpeername(client_sock, (SOCKADDR*)&client_addr, &addrlen);
+	buf = player->m_buf;
 
-	// 서버의 콘솔창에 접속을 띄울경우 주석 풀기
-	// printf("클라이언트 접속 %s : %d\n", inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
+	len = BUFSIZE;
 
+	cout << id << endl;
 	// 클라이언트와 데이터 통신
 	while (1) {
 		WaitForSingleObject(hEvent, INFINITE);
 		recv(client_sock, buf, len, 0);
-
+		process_client(id, buf);
 
 		SetEvent(hEvent);
 	}
@@ -208,4 +208,39 @@ void send_move_packet(SOCKET* client_socket, int client_id)
 	packet.aim_y = g_clients[client_id].m_aim_y;
 	packet.id = client_id;
 	send(*client_socket, reinterpret_cast<const char*>(&packet), packet.size, 0);
+}
+
+void process_client(int client_id, char* p)
+{
+	unsigned char packet_type = p[1];
+	Player& cl = g_clients[client_id];
+	switch (packet_type)
+	{
+	case CS_PACKET_MOVE: {
+		cs_packet_move* packet = reinterpret_cast<cs_packet_move*>(p);
+		switch (packet->direction)//이동처리 충돌체크 x
+		{
+		case 0: cl.m_pos_y--; break;
+		case 1:cl.m_pos_y++; break;
+		case 2:cl.m_pos_x--; break;
+		case 3:cl.m_pos_x++; break;
+		default:
+			cout << "잘못된값이 왔습니다 종료합니다 " << client_id << endl;
+
+			exit(-1);
+
+		}
+		cout << "[" << cl.m_id << "] x : " << cl.m_pos_x << "y :" << cl.m_pos_y << endl;
+
+		// 임시적으로 해 놓은것
+		break;
+	}
+	case CS_PACKET_AIM: {
+
+		break;
+	}
+	case CS_PACKET_ATTACK:
+
+		break;
+	}
 }
