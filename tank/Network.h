@@ -1,6 +1,4 @@
 #pragma once
-#include <iostream>
-using namespace std;
 
 #include "protocol.h"
 
@@ -14,10 +12,6 @@ void err_display(const char* msg);
 int netInit();
 
 int netclose();
-
-void send_attack_packet();
-
-void send_aim_packet(float x, float y);
 
 void send_move_packet(int direction);
 

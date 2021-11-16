@@ -59,16 +59,23 @@ void GameFramework::BuildObjects()
 {
 	//객체 생성
 	
-	w_objects = new Wall(m_hInstance, 50, 50);
+	
+	objects = new GameObject * [NOBJECTS];
+	for (int i = 0; i < NOBJECTS; ++i) {
+		Wall* w= new Wall(m_hInstance, obj_map[i].x, obj_map[i].y);
+		objects[i] = w;
+	}
+	
+
 	//플레이어의 정보를 서버로부터 받아서 생성
 	m_pPlayer = new Player(m_hInstance, 1, 150, 150);
-	m_pPlayer->setObject(w_objects);
+	m_pPlayer->setObject(objects);
 
 }
 void GameFramework::ReleaseObjects()
 {
 	if (m_pPlayer) delete m_pPlayer;
-	if (w_objects) delete w_objects;
+	for(int i =0; i < NOBJECTS; ++i) if (objects[i]) delete objects[i];
 }
 
 void GameFramework::ProcessInput()
@@ -86,12 +93,22 @@ void GameFramework::ProcessInput()
 	}
 	
 	
-	POINT ptCursorPos;
-	//마우스 커서위치를 플레이어에게 전달하는부분
 
 	if (dwDirection) m_pPlayer->Move(dwDirection, GameTimer.GetTimeElapsed());
 	
 	m_pPlayer->update(GameTimer.GetTimeElapsed());
+
+	RECT o_crect,p_crect; //물체의 바운딩박스 플레이어의 바운딩박스
+	bool collided = false;
+
+	m_pPlayer->get_BoundingRect(p_crect);
+	for (int i = 0; i < NOBJECTS; ++i) //멀티 플레이시 이중for문으로 비교
+	{
+		objects[i]->get_BoundingRect(o_crect);
+		if (collide(o_crect, p_crect)) {
+			m_pPlayer->setPrevPos();//이전위치로 재설정
+		}
+	}
 }
 
 void GameFramework::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam)
@@ -101,6 +118,7 @@ void GameFramework::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM 
 	case WM_RBUTTONDOWN:
 		break;
 	case WM_LBUTTONDOWN:
+		m_pPlayer->fire();
 		break;
 	case WM_LBUTTONUP:
 	case WM_RBUTTONUP:
@@ -188,7 +206,8 @@ void GameFramework::FrameAdvance()
 	ClearFrameBuffer(RGB(255, 255, 255));
 
 	//렌더링
-	w_objects->draw(hDCFrameBuffer);
+	for(int i =0; i<NOBJECTS; ++i)
+		((Wall*)objects[i])->draw(hDCFrameBuffer);
 	
 	m_pPlayer->draw(hDCFrameBuffer);
 

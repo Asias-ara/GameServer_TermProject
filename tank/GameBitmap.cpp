@@ -13,8 +13,7 @@ GameBitmap::GameBitmap(char* filename,HINSTANCE g_hinst)
 HBITMAP GameBitmap::load(char * filename, HINSTANCE g_hinst)
 {
 	TCHAR str[20] = { 0 };
-	int nLen = (int)strlen(filename) + 1;
-	mbstowcs(str, filename, nLen);
+	CharToWChar(filename, str);
 	HBITMAP bmp = (HBITMAP)LoadImage(g_hinst,str, 
 IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE | LR_CREATEDIBSECTION);
 

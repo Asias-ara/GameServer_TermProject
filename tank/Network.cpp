@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "Network.h"
+//#include <WS2tcpip.h>
 
 WSADATA wsa;
 SOCKET sock;
@@ -86,6 +87,15 @@ int netclose()
 	// 윈속종료
 	WSACleanup();
 	return 0;
+}
+
+void send_move_packet(int direction)
+{
+	cs_packet_move packet;
+	packet.size = sizeof(packet);
+	packet.type = CS_PACKET_MOVE;
+	packet.direction = (char)direction;
+	do_send(sizeof(packet), &packet);
 }
 
 void do_send(int num_bytes, void* mess)

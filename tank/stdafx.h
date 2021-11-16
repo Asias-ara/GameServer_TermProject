@@ -7,6 +7,7 @@
 #include <windows.h>
 //C++
 #include <iostream>
+#include <cmath>
 //C 런타임 헤더파일
 #include <tchar.h>
 #include <math.h>
@@ -34,9 +35,8 @@ using namespace std;
 
 #define __DEBUG
 
+#define NOBJECTS 42 //벽40  + 장애물 2
 
-void CharToWChar(const char* pstrSrc, wchar_t pwstrDest[])
-{
-	int nLen = (int)strlen(pstrSrc) + 1;
-	mbstowcs(pwstrDest, pstrSrc, nLen);
-}
+extern bool collide(const RECT& rect1, const RECT& rect2);
+extern void CharToWChar(const char* pstrSrc, wchar_t pwstrDest[]);
+extern void Normalize(const POINT& start, const POINT& end, float& dx, float& dy);

@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "resource1.h"
 #include "GameFramework.h"
+//#include "Network.h"
 
 #define MAX_LOADSTRING 100
 
@@ -35,6 +36,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		return FALSE;
 	}
 
+	// 네트워크 연결
+	// netInit();
+
 	hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_TANK));
 
 	// 기본 메시지 루프입니다.
@@ -53,8 +57,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		{
 			gameframework.FrameAdvance();
 		}
+
+		// 여기서 recv처리
+		// do_recv();
 	}
 	gameframework.OnDestroy();
+
+	// 네트워크 닫기
+	// netclose();
 
 	return (int)msg.wParam;
 }

@@ -11,7 +11,6 @@ public:
 	virtual void update() {};
 	virtual void draw(const HDC& hdc, const RECT rect);
 	
-	bool collide(const RECT& rect1, const RECT& rect2);
 	virtual void get_BoundingRect(RECT& rect);
 	virtual void draw_BoundingRect(const HDC hdc, const RECT rect);
 };
