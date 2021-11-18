@@ -4,7 +4,6 @@
 
 const int BUFSIZE = 2048;
 
-
 void err_quit(const char* msg);
 
 void err_display(const char* msg);
@@ -19,5 +18,7 @@ void send_move_packet(int direction);
 void do_send(int num_bytes, void* mess);
 
 void do_recv();
+
+bool get_start_game();
 
 // void return_otherPlayer(CPlayer** m_otherPlayer, ID3D12Device* m_pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera);

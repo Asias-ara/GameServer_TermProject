@@ -13,9 +13,14 @@
 #include <math.h>
 #include <stdlib.h>
 
-
-
 using namespace std;
+
+// ÄÜ¼ÖÃ¢
+#ifdef _DEBUG
+
+#pragma comment(linker, "/entry:WinMainCRTStartup /subsystem:console")
+
+#endif
 
 
 #pragma comment(lib, "ws2_32")

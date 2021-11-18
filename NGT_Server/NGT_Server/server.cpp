@@ -148,6 +148,15 @@ DWORD WINAPI ProcessClient(LPVOID arg)
 	len = BUFSIZE;
 
 	cout << id << endl;
+
+	send_login_ok_packet(&client_sock, id);
+	for (auto& cl : g_clients) {
+		if (cl.second.m_id == id) continue;
+		send_other_info_packet(&cl.second.m_c_socket, cl.second.m_id, id);
+		send_other_info_packet(&client_sock, id, cl.second.m_id);
+	}
+
+
 	// 클라이언트와 데이터 통신
 	while (1) {
 		if (start_game == false) continue;
@@ -164,7 +173,17 @@ DWORD WINAPI ProcessClient(LPVOID arg)
 
 void gameStart()
 {
-	// 정보를 초기화 -> 처음 위치 어떻게 할 것인가?
+	// 정보를 초기화 
+	g_clients[1].m_pos_x = 150;
+	g_clients[1].m_pos_y = 150;
+	g_clients[2].m_pos_x = 450;
+	g_clients[2].m_pos_y = 150;
+	g_clients[3].m_pos_x = 300;
+	g_clients[3].m_pos_y = 400;
+	for (auto& cl : g_clients) {
+		send_start_game_packet(&cl.second.m_c_socket, cl.second.m_id);
+	}
+	start_game = true;
 }
 
 

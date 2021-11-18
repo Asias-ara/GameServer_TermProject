@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "resource1.h"
 #include "GameFramework.h"
-//#include "Network.h"
+#include "Network.h"
 
 #define MAX_LOADSTRING 100
 
@@ -16,8 +16,18 @@ BOOL	InitInstance(HINSTANCE, int);
 LRESULT CALLBACK	WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK	About(HWND, UINT, WPARAM, LPARAM);
 
+
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
+
+	netInit();
+
+	while (true) {
+		do_recv();
+		if (get_start_game()) break;
+	}
+
+
 	UNREFERENCED_PARAMETER(hPrevInstance);
 	UNREFERENCED_PARAMETER(lpCmdLine);
 
@@ -37,7 +47,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	}
 
 	// 네트워크 연결
-	// netInit();
 
 	hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_TANK));
 
@@ -59,12 +68,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		}
 
 		// 여기서 recv처리
-		// do_recv();
+		do_recv();
 	}
 	gameframework.OnDestroy();
 
 	// 네트워크 닫기
-	// netclose();
+	netclose();
 
 	return (int)msg.wParam;
 }
