@@ -8,11 +8,12 @@ unordered_map<int, Player>g_clients;
 bool			start_game = false;
 // 함수선언
 DWORD WINAPI	ProcessClient(LPVOID arg);			// 클라이언트 쓰레드
-DWORD WINAPI	ControlClinet(LPVOID arg);			// 클라이언트를 제어하는 쓰레드
+DWORD WINAPI	SendPacket(LPVOID arg);				// 샌드를 하는 쓰레드
 void			gameStart();						// 게임 시작 처리
 void			send_login_ok_packet(SOCKET* client_socket, int client_id);					// 로그인 성공을 알려주는 패킷 전송
 void			send_other_info_packet(SOCKET* client_socket, int client_id, int other_id);	// 다른 클라이언트의 정보 패킷 전송
 void			send_start_game_packet(SOCKET* client_socket, int client_id);				// 게임이 시작하면 모든 클라이언트에게 패킷 전송	
+void			send_move_packet(SOCKET* client_socket, int client_id);
 void			process_client(int client_id, char* p);
 void			send_dead_packet(SOCKET* client_socket, int client_id);
 void err_display(const char* msg)
@@ -124,6 +125,13 @@ int main(int argc, char* argv[])
 
 	// 3명이 접속 완료
 	gameStart();
+	HANDLE hSend;
+	hThread = CreateThread(NULL, 0, SendPacket, NULL, 0, NULL);
+	if (hThread == NULL) { cout << "쓰레드 생성 에러" << endl; }
+
+	while (true) {
+		this_thread::sleep_for(10ms);
+	}
 
 	closesocket(sock);
 	WSACleanup();
@@ -171,6 +179,16 @@ DWORD WINAPI ProcessClient(LPVOID arg)
 	return 0;
 }
 
+DWORD WINAPI SendPacket(LPVOID arg) {
+	while (1) {
+		for (auto& pl : g_clients) {
+			for (int i = 1; i <= 3; ++i)
+				send_move_packet(&pl.second.m_c_socket, i);
+		}
+		this_thread::sleep_for(10ms);
+	}
+}
+
 void gameStart()
 {
 	// 정보를 초기화 
@@ -185,7 +203,6 @@ void gameStart()
 	}
 	start_game = true;
 }
-
 
 
 void send_login_ok_packet(SOCKET* client_socket, int client_id)

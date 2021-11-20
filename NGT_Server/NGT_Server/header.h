@@ -7,6 +7,8 @@
 #include <WinSock2.h>
 #include <stdlib.h>
 #include <fstream>
+#include <chrono>
+#include <thread>
 #include<unordered_map>
 #include "protocol.h"
 

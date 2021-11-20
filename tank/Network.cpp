@@ -9,6 +9,7 @@ int my_id = 0;
 int retval = 0;
 char send_buf[BUFSIZE];
 char recv_buf[BUFSIZE];
+bool start_game = false;
 
 void err_display(const char* msg)
 {
@@ -89,12 +90,30 @@ int netclose()
 	return 0;
 }
 
+void send_attack_packet()
+{
+	cs_packet_attack packet;
+	packet.size = sizeof(packet);
+	packet.type = CS_PACKET_ATTACK;
+	do_send(sizeof(packet), &packet);
+}
+
 void send_move_packet(int direction)
 {
 	cs_packet_move packet;
 	packet.size = sizeof(packet);
 	packet.type = CS_PACKET_MOVE;
 	packet.direction = (char)direction;
+	do_send(sizeof(packet), &packet);
+}
+
+void send_aim_packet(float x, float y)
+{
+	cs_packet_aim packet;
+	packet.size = sizeof(packet);
+	packet.type = CS_PACKET_AIM;
+	packet.x = x;
+	packet.y = y;
 	do_send(sizeof(packet), &packet);
 }
 
@@ -120,6 +139,7 @@ void do_recv()
 		case SC_PACKET_LOGIN_OK: {
 			sc_packet_login_ok* packet = reinterpret_cast<sc_packet_login_ok*>(p);
 			my_id = packet->id;
+			cout << my_id << endl;
 			break;
 		}
 		case SC_PACKET_OTHER_INFO: {
@@ -127,10 +147,13 @@ void do_recv()
 			// 다른 클라이언트를 그려주는 객체에 id부여
 			// 다른 클라이언트 객체.id = packet->id;
 			packet->id;
+			cout << "other : "  << (int)packet->id << endl;
 			break;
 		}
 		case SC_PACKET_START_GAME: {
 			// 이제 렌더링을 시작
+			start_game = true;
+			cout << "게임 시작" << endl;
 			break;
 		}
 		case SC_PACKET_MOVE: {
@@ -164,4 +187,9 @@ void do_recv()
 		}
 		p = p + packet_size;
 	}
+}
+
+bool get_start_game()
+{
+	return start_game;
 }

@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "Player.h"
 #include "Wall.h"
+#include "Network.h"
 
 Player::Player(HINSTANCE g_hinst, char id, float x, float y) 
 	:GameObject(g_hinst,"img/tank.bmp",x,y)
@@ -63,10 +64,14 @@ void Player::Move(DWORD dwDirection, float frame_time)
 	if (dwDirection)
 	{
 		float dx = 0, dy = 0;
-		if (dwDirection & DIR_FORWARD) dy -= spd* frame_time;	// send_move_packet(0)
-		if (dwDirection & DIR_BACKWARD) dy += spd * frame_time; // send_move_packet(1)
-		if (dwDirection & DIR_RIGHT) dx += spd * frame_time;	// send_move_packet(3)
-		if (dwDirection & DIR_LEFT) dx -= spd * frame_time;		// send_move_packet(2)
+		if (dwDirection & DIR_FORWARD) //dy -= spd* frame_time;	
+			send_move_packet(0);
+		if (dwDirection & DIR_BACKWARD) //dy += spd * frame_time; 
+			send_move_packet(1);
+		if (dwDirection & DIR_RIGHT) //dx += spd * frame_time;	
+			send_move_packet(3);
+		if (dwDirection & DIR_LEFT) //dx -= spd * frame_time;		
+			send_move_packet(2);
 
 		this->dx = dx;
 		this->dy = dy;
