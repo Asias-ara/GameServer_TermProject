@@ -16,6 +16,7 @@ void			send_start_game_packet(SOCKET* client_socket, int client_id);				// ∞‘¿”¿
 void			send_move_packet(SOCKET* client_socket, int client_id);
 void			process_client(int client_id, char* p);
 void			send_dead_packet(SOCKET* client_socket, int client_id);
+void			send_hit_packet(SOCKET* client_socket, int client_id);
 void err_display(const char* msg)
 {
 	LPVOID lpMsgBuf;
@@ -249,6 +250,14 @@ void send_dead_packet(SOCKET* client_socket, int client_id)
 	sc_packet_dead packet;
 	packet.size = sizeof(packet);
 	packet.type = SC_PACKET_DEAD;
+	packet.id = client_id;
+	send(*client_socket, reinterpret_cast<const char*>(&packet), packet.size, 0);
+}
+void send_hit_packet(SOCKET* client_socket, int client_id)
+{
+	sc_packet_fire packet;
+	packet.size = sizeof(packet);
+	packet.type = SC_PACKET_FIRE;
 	packet.id = client_id;
 	send(*client_socket, reinterpret_cast<const char*>(&packet), packet.size, 0);
 }
