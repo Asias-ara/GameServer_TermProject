@@ -14,7 +14,7 @@ void			send_login_ok_packet(SOCKET* client_socket, int client_id);					// 로그인
 void			send_other_info_packet(SOCKET* client_socket, int client_id, int other_id);	// 다른 클라이언트의 정보 패킷 전송
 void			send_start_game_packet(SOCKET* client_socket, int client_id);				// 게임이 시작하면 모든 클라이언트에게 패킷 전송	
 void			process_client(int client_id, char* p);
-
+void			send_dead_packet(SOCKET* client_socket, int client_id);
 void err_display(const char* msg)
 {
 	LPVOID lpMsgBuf;
@@ -226,6 +226,16 @@ void send_move_packet(SOCKET* client_socket, int client_id)
 	packet.id = client_id;
 	send(*client_socket, reinterpret_cast<const char*>(&packet), packet.size, 0);
 }
+
+void send_dead_packet(SOCKET* client_socket, int client_id)
+{
+	sc_packet_dead packet;
+	packet.size = sizeof(packet);
+	packet.type = SC_PACKET_DEAD;
+	packet.id = client_id;
+	send(*client_socket, reinterpret_cast<const char*>(&packet), packet.size, 0);
+}
+
 
 void process_client(int client_id, char* p)
 {
