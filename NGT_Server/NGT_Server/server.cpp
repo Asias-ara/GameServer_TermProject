@@ -1,11 +1,15 @@
 #include"header.h"
 #include"Player.h"
+#include"Bullet.h"
+
 // 전역변수
 HANDLE			hEvent;				// 이벤트 핸들
 int				thread_count = 0;	// 몇개의 클라이언트가 접속했는지(몇개의 클라이언트 쓰레드가 만들어졌는지) 파악
-int				g_id = 0;			// 각 클라이언트에게 id부여
 unordered_map<int, Player>g_clients;
 bool			start_game = false;
+const int		MAAX_BULLET = 15;
+array<BulletObject, MAAX_BULLET> bullets;
+
 // 함수선언
 DWORD WINAPI	ProcessClient(LPVOID arg);			// 클라이언트 쓰레드
 DWORD WINAPI	SendPacket(LPVOID arg);				// 샌드를 하는 쓰레드
@@ -14,9 +18,16 @@ void			send_login_ok_packet(SOCKET* client_socket, int client_id);					// 로그인
 void			send_other_info_packet(SOCKET* client_socket, int client_id, int other_id);	// 다른 클라이언트의 정보 패킷 전송
 void			send_start_game_packet(SOCKET* client_socket, int client_id);				// 게임이 시작하면 모든 클라이언트에게 패킷 전송	
 void			send_move_packet(SOCKET* client_socket, int client_id);
-void			process_client(int client_id, char* p);
 void			send_dead_packet(SOCKET* client_socket, int client_id);
+void			send_fire_packet(SOCKET* client_socket, int client_id);
 void			send_hit_packet(SOCKET* client_socket, int client_id);
+void			process_client(int client_id,char*p);
+void			send_move_packet(SOCKET* client_socket, int client_id);
+void			send_dead_packet(SOCKET* client_socket, int client_id);
+void			send_fire_packet(SOCKET* client_socket, int client_id);
+void			send_hit_packet(SOCKET* client_socket, int client_id);
+
+
 void err_display(const char* msg)
 {
 	LPVOID lpMsgBuf;
@@ -107,19 +118,22 @@ int main(int argc, char* argv[])
 	int addrlen;
 
 	// 이벤트 사용 준비
-	hEvent = CreateEvent(NULL, FALSE, TRUE, NULL);		// 콘솔창에 쓰는것은 비신호로 시작
+	hEvent = CreateEvent(NULL, FALSE, FALSE, NULL);		// 콘솔창에 쓰는것은 비신호로 시작
 	if (hEvent == NULL) return 1;
 
 	HANDLE hThread;
 	while (thread_count < 3) {
 		// accept()
+		
 		addrlen = sizeof(client_addr);
 		client_sock = accept(sock, (SOCKADDR*)&client_addr, &addrlen);
-		if (client_sock == INVALID_SOCKET) { err_display("ACCEPT()"); break; }
-
+		if (client_sock== INVALID_SOCKET) { err_display("ACCEPT()"); break; }
+		int id = thread_count + 1;
+		Player* player = new Player(client_sock, id);
+		g_clients.insert(make_pair(thread_count + 1, *player));
 		// 여기서 Thread생성후 소켓 전달
-		hThread = CreateThread(NULL, 0, ProcessClient, (LPVOID)client_sock, 0, NULL);
-		if (hThread == NULL) { closesocket(client_sock); }
+		hThread = CreateThread(NULL, 0, ProcessClient, (LPVOID)player, 0, NULL);
+		if (hThread == NULL) { closesocket(player->m_c_socket); }
 		else { CloseHandle(hThread); }
 		thread_count++;
 	}
@@ -131,9 +145,14 @@ int main(int argc, char* argv[])
 	if (hThread == NULL) { cout << "쓰레드 생성 에러" << endl; }
 
 	while (true) {
+		for (auto& bullet : bullets) {
+			if (bullet.getActive()) {
+				bullet.update(0.0001f);
+				cout << "총알" << bullet.getPos_x() << "," << bullet.getPos_y() << endl;
+			}
+		}
 		this_thread::sleep_for(10ms);
 	}
-
 	closesocket(sock);
 	WSACleanup();
 	return 0;
@@ -141,10 +160,11 @@ int main(int argc, char* argv[])
 
 DWORD WINAPI ProcessClient(LPVOID arg)
 {
+	cout << "생성" << endl;
 	int retval; // 오류 검출 변수
 
 	// 전달된 소켓 저장
-	Player* player = (Player*)arg;
+	Player* player =  (Player*)arg;
 	SOCKET& client_sock = player->m_c_socket;
 	SOCKADDR_IN client_addr;
 	int addrlen;
@@ -152,11 +172,17 @@ DWORD WINAPI ProcessClient(LPVOID arg)
 	int len;
 	int id = player->m_id;
 
-	buf = player->m_buf;
+	buf=player->m_buf;
 
 	len = BUFSIZE;
 
 	cout << id << endl;
+	// 클라이언트 정보 얻기
+	addrlen = sizeof(client_addr);
+	getpeername(client_sock, (SOCKADDR*)&client_addr, &addrlen);
+
+	// 서버의 콘솔창에 접속을 띄울경우 주석 풀기
+	// printf("클라이언트 접속 %s : %d\n", inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
 
 	send_login_ok_packet(&client_sock, id);
 	for (auto& cl : g_clients) {
@@ -164,7 +190,6 @@ DWORD WINAPI ProcessClient(LPVOID arg)
 		send_other_info_packet(&cl.second.m_c_socket, cl.second.m_id, id);
 		send_other_info_packet(&client_sock, id, cl.second.m_id);
 	}
-
 
 	// 클라이언트와 데이터 통신
 	while (1) {
@@ -175,7 +200,6 @@ DWORD WINAPI ProcessClient(LPVOID arg)
 
 	// 서버의 콘솔창에 접속 종료를 띄울경우 주석 풀기
 	// printf("클라이언트 종료 %s : %d \n", inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
-
 	closesocket(client_sock);
 	return 0;
 }
@@ -183,8 +207,14 @@ DWORD WINAPI ProcessClient(LPVOID arg)
 DWORD WINAPI SendPacket(LPVOID arg) {
 	while (1) {
 		for (auto& pl : g_clients) {
-			for (int i = 1; i <= 3; ++i)
+			for(int i=1; i<=3; ++i)
 				send_move_packet(&pl.second.m_c_socket, i);
+			// 총알이 있다면 총알도 보내준다
+			for (auto& bullet : bullets) {
+				if (bullet.getActive()) {
+					
+				}
+			}
 		}
 		this_thread::sleep_for(10ms);
 	}
@@ -192,7 +222,8 @@ DWORD WINAPI SendPacket(LPVOID arg) {
 
 void gameStart()
 {
-	// 정보를 초기화 
+	cout << "게임시작" << endl;
+	// 정보 초기화
 	g_clients[1].m_pos_x = 150;
 	g_clients[1].m_pos_y = 150;
 	g_clients[2].m_pos_x = 450;
@@ -205,14 +236,13 @@ void gameStart()
 	start_game = true;
 }
 
-
 void send_login_ok_packet(SOCKET* client_socket, int client_id)
 {
 	sc_packet_login_ok packet;
 	packet.size = sizeof(packet);
 	packet.type = SC_PACKET_LOGIN_OK;
 	packet.id = client_id;
-	send(*client_socket, reinterpret_cast<const char*>(&packet), sizeof(packet), 0);
+	send(*client_socket, reinterpret_cast<char*>(&packet), sizeof(packet), 0);
 }
 
 void send_other_info_packet(SOCKET* client_socket, int client_id, int other_id)
@@ -253,15 +283,24 @@ void send_dead_packet(SOCKET* client_socket, int client_id)
 	packet.id = client_id;
 	send(*client_socket, reinterpret_cast<const char*>(&packet), packet.size, 0);
 }
-void send_hit_packet(SOCKET* client_socket, int client_id)
+
+void send_fire_packet(SOCKET* client_socket, int client_id)
 {
-	sc_packet_fire packet;
+	sc_packet_move packet;
 	packet.size = sizeof(packet);
 	packet.type = SC_PACKET_FIRE;
 	packet.id = client_id;
 	send(*client_socket, reinterpret_cast<const char*>(&packet), packet.size, 0);
 }
 
+void send_hit_packet(SOCKET* client_socket, int client_id)
+{
+	sc_packet_move packet;
+	packet.size = sizeof(packet);
+	packet.type = SC_PACKET_FIRE;
+	packet.id = client_id;
+	send(*client_socket, reinterpret_cast<const char*>(&packet), packet.size, 0);
+}
 
 void process_client(int client_id, char* p)
 {
@@ -269,7 +308,7 @@ void process_client(int client_id, char* p)
 	Player& cl = g_clients[client_id];
 	switch (packet_type)
 	{
-	case CS_PACKET_MOVE: {
+	case CS_PACKET_MOVE:{
 		cs_packet_move* packet = reinterpret_cast<cs_packet_move*>(p);
 		switch (packet->direction)//이동처리 충돌체크 x
 		{
@@ -280,10 +319,10 @@ void process_client(int client_id, char* p)
 		default:
 			cout << "잘못된값이 왔습니다 종료합니다 " << client_id << endl;
 
-			exit(-1);
+			exit(-1);	
 
 		}
-		cout << "[" << cl.m_id << "] x : " << cl.m_pos_x << "y :" << cl.m_pos_y << endl;
+		cout <<  "[" << cl.m_id << "] x : " << cl.m_pos_x << "y :" << cl.m_pos_y << endl;
 
 		// 임시적으로 해 놓은것
 		break;
@@ -295,8 +334,15 @@ void process_client(int client_id, char* p)
 		break;
 	}
 	case CS_PACKET_ATTACK:
-		//bullet서버객체 제작후 넣기
-		cout <<" id: " << client_id << "발사확인" << endl;
+		cout << client_id << "가 쐇다 하나발" << endl;
+		for (auto& bl : bullets) {
+			if (bl.getActive() == false) {
+				bl.setActive();
+				bl.setPos(cl.m_pos_x, cl.m_pos_y);
+				bl.setDir(cl.m_aim_x, cl.m_aim_y);
+				break;
+			}
+		}
 		break;
 	}
 }

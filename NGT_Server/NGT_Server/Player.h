@@ -1,5 +1,5 @@
 #pragma once
-#include"header.h"
+#include "header.h"
 class Player
 {
 public:
@@ -16,6 +16,7 @@ public:
 	int m_prev_size;
 	char m_buf[BUFSIZE];
 	RECT collision_rect;	// collision rect
+
 
 };
 

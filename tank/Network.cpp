@@ -11,6 +11,15 @@ char send_buf[BUFSIZE];
 char recv_buf[BUFSIZE];
 bool start_game = false;
 
+struct NetPlayer {
+	float x = 150;
+	float y = 150;
+	float aim_x = 150;
+	float aim_y = 150;
+};
+
+array<NetPlayer, 4> mPlayer;
+
 void err_display(const char* msg)
 {
 	LPVOID lpMsgBuf;
@@ -100,6 +109,7 @@ void send_attack_packet()
 
 void send_move_packet(int direction)
 {
+	cout << "move" << endl;
 	cs_packet_move packet;
 	packet.size = sizeof(packet);
 	packet.type = CS_PACKET_MOVE;
@@ -123,17 +133,19 @@ void do_send(int num_bytes, void* mess)
 	memcpy(send_buf, mess, num_bytes);
 
 	retval = send(sock, send_buf, num_bytes, 0);
+	cout << "move" << sizeof(num_bytes) <<  endl;
 	if (retval == SOCKET_ERROR) { err_display("SEND()"); }
 }
 
 void do_recv()
 {
+	//ZeroMemory(recv_buf, sizeof(recv_buf));
 	retval = recv(sock, recv_buf, sizeof(recv_buf), 0);
 	if (retval == SOCKET_ERROR) { err_display("RECV()");  return; }
 	char* p = recv_buf;
 	while (p < recv_buf + retval) {
 		unsigned char packet_size = *p;
-		int type = *(p + 1);
+		char type = *(p + 1);
 		if (packet_size <= 0) break;
 		switch (type) {
 		case SC_PACKET_LOGIN_OK: {
@@ -153,18 +165,26 @@ void do_recv()
 		case SC_PACKET_START_GAME: {
 			// 이제 렌더링을 시작
 			start_game = true;
-			cout << "게임 시작" << endl;
 			break;
 		}
+
 		case SC_PACKET_MOVE: {
 			sc_packet_move* packet = reinterpret_cast<sc_packet_move*> (p);
 			int p_id = packet->id;
-
+			
 			// 각 알맞는 클라에 넣어주기
-			packet->pos_x;
-			packet->pos_y;
-			packet->aim_x;
-			packet->aim_y;
+			
+			int pos_x = packet->pos_x;
+			int pos_y = packet->pos_y;
+			int aim_x = packet->aim_x;
+			int aim_y = packet->aim_y;
+
+			mPlayer[p_id].x = pos_x;
+			mPlayer[p_id].y = pos_y;
+			mPlayer[p_id].aim_x = aim_x;
+			mPlayer[p_id].aim_y = aim_x;
+
+			cout << "[" << p_id << "] (pos_x, pos_y) :" << pos_x << "," << pos_y << "(aim_x, aim_y) : " << aim_x << "," << aim_y << endl;
 			break;
 		}
 		case SC_PACKET_DEAD: {
@@ -192,4 +212,39 @@ void do_recv()
 bool get_start_game()
 {
 	return start_game;
+}
+
+int get_my_id()
+{
+	return my_id;
+}
+
+float get_MyPosition_x()
+{
+	return mPlayer[my_id].x;
+}
+
+float get_MyPosition_y()
+{
+	return mPlayer[my_id].y;
+}
+
+float get_Aim_x(int id)
+{
+	return mPlayer[id].aim_x;
+}
+
+float get_Aim_y(int id)
+{
+	return mPlayer[id].aim_y;
+}
+
+float get_Position_x(int id)
+{
+	return mPlayer[id].x;
+}
+
+float get_Position_y(int id)
+{
+	return mPlayer[id].y;
 }

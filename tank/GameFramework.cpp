@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "GameFramework.h"
+#include "Network.h"
 
 GameFramework::GameFramework()
 {
@@ -68,10 +69,19 @@ void GameFramework::BuildObjects()
 	
 
 	//플레이어의 정보를 서버로부터 받아서 생성
-	m_pPlayer = new Player(m_hInstance, 1, 150, 150);
+	m_pPlayer = new Player(m_hInstance, get_my_id(), 150, 150);
+	m_pPlayer->setId(get_my_id());
+	int i = 1;
+	for (auto& other_player : m_pOther) {
+		if (i == get_my_id()) ++i;
+		other_player = new Player(m_hInstance, i, 100*i, 100*i);
+		other_player->setId(i);
+		//other_player->setObject(objects);
+		++i;
+	}
 	m_pPlayer->setObject(objects);
-
 }
+
 void GameFramework::ReleaseObjects()
 {
 	if (m_pPlayer) delete m_pPlayer;
@@ -117,9 +127,11 @@ void GameFramework::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM 
 	{
 	case WM_RBUTTONDOWN:
 		break;
-	case WM_LBUTTONDOWN:
-		m_pPlayer->fire();
+	case WM_LBUTTONDOWN: {
+		send_attack_packet();
+		//m_pPlayer->fire();
 		break;
+	}
 	case WM_LBUTTONUP:
 	case WM_RBUTTONUP:
 		break;
@@ -200,6 +212,17 @@ void GameFramework::FrameAdvance()
 
 	ProcessInput();
 
+	// 위치 수정
+	m_pPlayer->setX(get_MyPosition_x()); 
+	m_pPlayer->setY(get_MyPosition_y());
+	// 여기서 플레이어 총구 설정
+
+	for (auto& other: m_pOther) {
+		other->setX(get_Position_x(other->getId()));
+		other->setY(get_Position_y(other->getId()));
+		// 다른 플레이어 총구 설정
+	}
+
 	float fTimeElapsed = GameTimer.GetTimeElapsed();
 	//애니메이션
 
@@ -208,7 +231,11 @@ void GameFramework::FrameAdvance()
 	//렌더링
 	for(int i =0; i<NOBJECTS; ++i)
 		((Wall*)objects[i])->draw(hDCFrameBuffer);
-	
+	for (auto& other : m_pOther) {
+		other->draw(hDCFrameBuffer);
+		other->update(GameTimer.GetTimeElapsed());
+	}
+
 	m_pPlayer->draw(hDCFrameBuffer);
 
 
@@ -216,4 +243,6 @@ void GameFramework::FrameAdvance()
 
 	GameTimer.GetFrameRate(szFrameRate + 12, 37);
 	::SetWindowText(m_hWnd, szFrameRate);
+
+	m_pPlayer->send_cursor();
 }

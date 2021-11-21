@@ -3,6 +3,13 @@ const char SERVERPORT = 49500;
 // 프로토콜 설계
 // 타입
 
+
+//
+const int CLIENT_WIDTH = 640;
+
+const int CLIENT_HEIGHT =480;
+
+
 //client to server
 const char CS_PACKET_MOVE = 1;
 const char CS_PACKET_AIM = 2;
