@@ -6,7 +6,7 @@
 #define BLTS 5
 
 class Player : public GameObject {
-	char id;				// player id
+	int id;				// player id
 	int hp;					// health point
 	float dx, dy;		
 	float px, py;			// prior position
@@ -20,15 +20,15 @@ public:
 public:
 	Player(HINSTANCE g_hinst, char id, float x, float y);
 	~Player();
-	char getId();
+	int getId();
 	int getX();
 	int getY();
 	int getSpd();
 
-	void setId();
+	void setId(int get_id);
 	void setType();
-	void setX();
-	void setY();
+	void setX( int get_x );
+	void setY( int get_y );
 	//플레이어의 이전위치(이동전)로 설정
 	void setPrevPos();
 
@@ -42,4 +42,6 @@ public:
 
 	virtual void update(float fTimeElapsed);
 	virtual void draw(const HDC& mem1dc);
+
+	void send_cursor();
 };

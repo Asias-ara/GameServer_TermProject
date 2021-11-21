@@ -40,7 +40,7 @@ using namespace std;
 
 #define __DEBUG
 
-#define NOBJECTS 42 //벽40  + 장애물 2
+#define NOBJECTS 42 //벽40  + 장애물 2 + 다른 플레이어
 
 extern bool collide(const RECT& rect1, const RECT& rect2);
 extern void CharToWChar(const char* pstrSrc, wchar_t pwstrDest[]);

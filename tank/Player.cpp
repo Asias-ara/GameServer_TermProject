@@ -25,6 +25,26 @@ Player::~Player()
 	//if (bullets) delete bullets;
 }
 
+int Player::getId()
+{
+	return id;
+}
+
+void Player::setId(int get_id)
+{
+	id = get_id;
+}
+
+void Player::setX(int get_x)
+{
+	x = get_x;
+}
+
+void Player::setY(int get_y)
+{
+	y = get_y;
+}
+
 void Player::setPrevPos()
 {
 	x = px;
@@ -107,6 +127,11 @@ void Player::update(float fTimeElapsed)
 	//이동량 초기화
 	dx = 0;
 	dy = 0;
-
+	
 	for (int i = 0; i < BLTS; ++i)if (bullets[i]->actived)bullets[i]->update(fTimeElapsed);
+}
+
+void Player::send_cursor()
+{
+	send_aim_packet(CursorPos.x, CursorPos.y);
 }

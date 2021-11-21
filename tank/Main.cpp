@@ -20,6 +20,7 @@ INT_PTR CALLBACK	About(HWND, UINT, WPARAM, LPARAM);
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
 
+	// 네트워크 연결
 	netInit();
 
 	while (true) {
@@ -46,8 +47,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		return FALSE;
 	}
 
-	// 네트워크 연결
-
 	hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_TANK));
 
 	// 기본 메시지 루프입니다.
@@ -67,6 +66,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			gameframework.FrameAdvance();
 		}
 
+		
 		// 여기서 recv처리
 		do_recv();
 	}

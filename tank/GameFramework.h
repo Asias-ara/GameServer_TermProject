@@ -26,6 +26,7 @@ private:
 
 	
 	Player* m_pPlayer = NULL; //멀티 플레이시 이중포인터로 바꿔주어야함
+	Player*	m_pOther[2];		// 다른 플레이어들
 	GameObject** objects = NULL;
 
 	POINT obj_map[NOBJECTS] = {
