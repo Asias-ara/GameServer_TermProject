@@ -1,2 +1,2 @@
-# GameServer_TermProject
-2021-2 KPU GameServer_TermProject
+# NetWork_TermProject
+2021-2 KPUNetwork_TermProject
