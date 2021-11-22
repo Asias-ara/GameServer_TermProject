@@ -29,8 +29,8 @@ using namespace std;
 
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 
-#define CLIENT_WIDTH			640
-#define CLIENT_HEIGHT			480
+#define CLIENT_WIDTH			1280
+#define CLIENT_HEIGHT			720
 #define DIR_FORWARD				0x01
 #define DIR_BACKWARD			0x02
 #define DIR_LEFT				0x04

@@ -45,6 +45,12 @@ void Player::setY(int get_y)
 	y = get_y;
 }
 
+void Player::set_aim(float _x, float _y)
+{
+	CursorPos.x = _x;
+	CursorPos.y = _y;
+}
+
 void Player::setPrevPos()
 {
 	x = px;
@@ -109,12 +115,12 @@ void Player::draw(const HDC& mem1dc)
 	
 
 }
-void Player::update(float fTimeElapsed)
+void Player::update(HWND m_hWnd, float fTimeElapsed)
 {
 
 	get_BoundingRect(collision_rect); //플레이어의 바운딩박스를 업데이트
 
-	GetCursorPos(&CursorPos);
+	
 
 	//이전위치 업데이트
 	px = x;
@@ -131,7 +137,10 @@ void Player::update(float fTimeElapsed)
 	for (int i = 0; i < BLTS; ++i)if (bullets[i]->actived)bullets[i]->update(fTimeElapsed);
 }
 
-void Player::send_cursor()
+void Player::send_cursor(HWND m_hWnd)
 {
+	GetCursorPos(&CursorPos);
+
+	ScreenToClient(m_hWnd, &CursorPos);
 	send_aim_packet(CursorPos.x, CursorPos.y);
 }

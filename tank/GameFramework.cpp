@@ -106,7 +106,7 @@ void GameFramework::ProcessInput()
 
 	if (dwDirection) m_pPlayer->Move(dwDirection, GameTimer.GetTimeElapsed());
 	
-	m_pPlayer->update(GameTimer.GetTimeElapsed());
+	m_pPlayer->update(m_hWnd,GameTimer.GetTimeElapsed());
 
 	RECT o_crect,p_crect; //물체의 바운딩박스 플레이어의 바운딩박스
 	bool collided = false;
@@ -215,11 +215,14 @@ void GameFramework::FrameAdvance()
 	// 위치 수정
 	m_pPlayer->setX(get_MyPosition_x()); 
 	m_pPlayer->setY(get_MyPosition_y());
+	//m_pPlayer->set_aim(get_Aim_x(get_my_id()), get_Aim_y(get_my_id()));
 	// 여기서 플레이어 총구 설정
 
 	for (auto& other: m_pOther) {
 		other->setX(get_Position_x(other->getId()));
 		other->setY(get_Position_y(other->getId()));
+		//other->set_aim(get_Aim_x(other->getId()), get_Aim_y(other->getId()));
+
 		// 다른 플레이어 총구 설정
 	}
 
@@ -233,7 +236,7 @@ void GameFramework::FrameAdvance()
 		((Wall*)objects[i])->draw(hDCFrameBuffer);
 	for (auto& other : m_pOther) {
 		other->draw(hDCFrameBuffer);
-		other->update(GameTimer.GetTimeElapsed());
+		other->update(m_hWnd,GameTimer.GetTimeElapsed());
 	}
 
 	m_pPlayer->draw(hDCFrameBuffer);
@@ -244,5 +247,5 @@ void GameFramework::FrameAdvance()
 	GameTimer.GetFrameRate(szFrameRate + 12, 37);
 	::SetWindowText(m_hWnd, szFrameRate);
 
-	m_pPlayer->send_cursor();
+	m_pPlayer->send_cursor(m_hWnd);
 }

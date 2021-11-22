@@ -29,6 +29,7 @@ public:
 	void setType();
 	void setX( int get_x );
 	void setY( int get_y );
+	void set_aim(float _x, float _y);
 	//플레이어의 이전위치(이동전)로 설정
 	void setPrevPos();
 
@@ -40,8 +41,8 @@ public:
 	void Move(DWORD dwDirection, float frame_time);
 
 
-	virtual void update(float fTimeElapsed);
+	virtual void update(HWND m_hWnd, float fTimeElapsed);
 	virtual void draw(const HDC& mem1dc);
 
-	void send_cursor();
+	void send_cursor(HWND m_hWnd);
 };

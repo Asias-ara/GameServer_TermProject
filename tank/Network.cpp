@@ -176,8 +176,8 @@ void do_recv()
 			
 			int pos_x = packet->pos_x;
 			int pos_y = packet->pos_y;
-			int aim_x = packet->aim_x;
-			int aim_y = packet->aim_y;
+			float aim_x = packet->aim_x;
+			float aim_y = packet->aim_y;
 
 			mPlayer[p_id].x = pos_x;
 			mPlayer[p_id].y = pos_y;
