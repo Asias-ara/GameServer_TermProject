@@ -7,8 +7,8 @@ HANDLE			hEvent;				// 이벤트 핸들
 int				thread_count = 0;	// 몇개의 클라이언트가 접속했는지(몇개의 클라이언트 쓰레드가 만들어졌는지) 파악
 unordered_map<int, Player>g_clients;
 bool			start_game = false;
-const int		MAAX_BULLET = 15;
-array<BulletObject, MAAX_BULLET> bullets;
+const int		MAX_BULLET = 15;
+array<BulletObject, MAX_BULLET> bullets;
 
 // 함수선언
 DWORD WINAPI	ProcessClient(LPVOID arg);			// 클라이언트 쓰레드
@@ -25,6 +25,7 @@ void			process_client(int client_id,char*p);
 void			send_move_packet(SOCKET* client_socket, int client_id);
 void			send_dead_packet(SOCKET* client_socket, int client_id);
 void			send_fire_packet(SOCKET* client_socket, int client_id);
+void			send_bullet_packet(SOCKET* client_socket, int bullet_id);
 void			send_hit_packet(SOCKET* client_socket, int client_id);
 
 
@@ -147,8 +148,7 @@ int main(int argc, char* argv[])
 	while (true) {
 		for (auto& bullet : bullets) {
 			if (bullet.getActive()) {
-				bullet.update(0.0001f);
-				cout << "총알" << bullet.getPos_x() << "," << bullet.getPos_y() << endl;
+				bullet.update(0.01f);
 			}
 		}
 		this_thread::sleep_for(10ms);
@@ -196,6 +196,7 @@ DWORD WINAPI ProcessClient(LPVOID arg)
 		if (start_game == false) continue;
 		retval = recv(client_sock, buf, len, 0);
 		process_client(id, buf);
+		this_thread::sleep_for(10ms);
 	}
 
 	// 서버의 콘솔창에 접속 종료를 띄울경우 주석 풀기
@@ -207,12 +208,13 @@ DWORD WINAPI ProcessClient(LPVOID arg)
 DWORD WINAPI SendPacket(LPVOID arg) {
 	while (1) {
 		for (auto& pl : g_clients) {
-			for(int i=1; i<=3; ++i)
+			for (int i = 1; i <= 3; ++i)
 				send_move_packet(&pl.second.m_c_socket, i);
+				
 			// 총알이 있다면 총알도 보내준다
-			for (auto& bullet : bullets) {
-				if (bullet.getActive()) {
-					
+			for(int i=0; i< MAX_BULLET; ++i) {
+				if (bullets[i].getActive()) {
+					send_bullet_packet(&pl.second.m_c_socket, i);
 				}
 			}
 		}
@@ -284,12 +286,26 @@ void send_dead_packet(SOCKET* client_socket, int client_id)
 	send(*client_socket, reinterpret_cast<const char*>(&packet), packet.size, 0);
 }
 
-void send_fire_packet(SOCKET* client_socket, int client_id)
+void send_fire_packet(SOCKET* client_socket, int client_id, int bullet_id)
 {
-	sc_packet_move packet;
+	sc_packet_fire packet;
 	packet.size = sizeof(packet);
 	packet.type = SC_PACKET_FIRE;
 	packet.id = client_id;
+	packet.bullet_id = bullet_id;
+	packet.x = bullets[bullet_id].getPos_x();
+	packet.y = bullets[bullet_id].getPos_y();
+	send(*client_socket, reinterpret_cast<const char*>(&packet), packet.size, 0);
+}
+
+void send_bullet_packet(SOCKET* client_socket, int bullet_id)
+{
+	sc_packet_bullet packet;
+	packet.size = sizeof(packet);
+	packet.type = SC_PACKET_BULLET;
+	packet.id = bullet_id;
+	packet.x = bullets[bullet_id].getPos_x();
+	packet.y = bullets[bullet_id].getPos_y();
 	send(*client_socket, reinterpret_cast<const char*>(&packet), packet.size, 0);
 }
 
@@ -301,6 +317,8 @@ void send_hit_packet(SOCKET* client_socket, int client_id)
 	packet.id = client_id;
 	send(*client_socket, reinterpret_cast<const char*>(&packet), packet.size, 0);
 }
+
+
 
 void process_client(int client_id, char* p)
 {
@@ -322,9 +340,6 @@ void process_client(int client_id, char* p)
 			exit(-1);	
 
 		}
-		cout <<  "[" << cl.m_id << "] x : " << cl.m_pos_x << "y :" << cl.m_pos_y << endl;
-
-		// 임시적으로 해 놓은것
 		break;
 	}
 	case CS_PACKET_AIM: {
@@ -334,12 +349,21 @@ void process_client(int client_id, char* p)
 		break;
 	}
 	case CS_PACKET_ATTACK:
-		cout << client_id << "가 쐇다 하나발" << endl;
-		for (auto& bl : bullets) {
-			if (bl.getActive() == false) {
-				bl.setActive();
-				bl.setPos(cl.m_pos_x, cl.m_pos_y);
-				bl.setDir(cl.m_aim_x, cl.m_aim_y);
+		for (int i = 0; i < MAX_BULLET; ++i) {
+			BulletObject* bl = &bullets[i];
+			if (bl->getActive() == false) {
+				bl->setActive();
+				bl->setId(cl.m_id);
+				bl->setPos(cl.m_pos_x, cl.m_pos_y);
+				
+				POINT dir{ cl.m_aim_x - cl.m_pos_x, cl.m_aim_y - cl.m_pos_y };
+				float temp = sqrt(dir.x * dir.x + dir.y * dir.y);
+				float dx = dir.x / temp;
+				float dy = dir.y / temp;
+				bl->setDir(dx, dy);
+				
+				for (auto& pl : g_clients)
+					send_fire_packet(&pl.second.m_c_socket, cl.m_id, i);
 				break;
 			}
 		}

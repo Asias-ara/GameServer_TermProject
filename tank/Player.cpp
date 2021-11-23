@@ -10,6 +10,7 @@ Player::Player(HINSTANCE g_hinst, char id, float x, float y)
 	dx = 0;
 	dy = 0;
 	spd = 100;
+	hp = 1;
 	GetCursorPos(&CursorPos);
 	get_BoundingRect(collision_rect);
 
@@ -30,6 +31,11 @@ int Player::getId()
 	return id;
 }
 
+int Player::gethp()
+{
+	return hp;
+}
+
 void Player::setId(int get_id)
 {
 	id = get_id;
@@ -47,7 +53,7 @@ void Player::setY(int get_y)
 
 void Player::set_aim(float _x, float _y)
 {
-	CursorPos.x = _x;
+	CursorPos.x = _x; 
 	CursorPos.y = _y;
 }
 
@@ -63,7 +69,7 @@ void Player::setObject(GameObject** other)
 
 void Player::fire()
 {
-	BulletObject* bull = NULL;
+	/*BulletObject* bull = NULL;
 	for (int i = 0; i < BLTS; ++i)
 	{
 		if (!bullets[i]->actived)
@@ -81,7 +87,7 @@ void Player::fire()
 		bull->setPos(x,y);
 		bull->setDir(dx, dy);
 		bull->setActive();
-	}
+	}*/
 }
 
 void Player::Move(DWORD dwDirection, float frame_time)
@@ -111,7 +117,7 @@ void Player::draw(const HDC& mem1dc)
 
 	if (bitmap)bitmap->draw(mem1dc, pdc, x, y);
 
-	for (int i = 0; i < BLTS; ++i)if (bullets[i]->actived)bullets[i]->draw(mem1dc);
+	// for (int i = 0; i < BLTS; ++i)if (bullets[i]->actived)bullets[i]->draw(mem1dc);
 	
 
 }
@@ -120,7 +126,9 @@ void Player::update(HWND m_hWnd, float fTimeElapsed)
 
 	get_BoundingRect(collision_rect); //플레이어의 바운딩박스를 업데이트
 
-	
+	// GetCursorPos(&CursorPos);
+
+	// ScreenToClient(m_hWnd, &CursorPos);
 
 	//이전위치 업데이트
 	px = x;
@@ -134,7 +142,7 @@ void Player::update(HWND m_hWnd, float fTimeElapsed)
 	dx = 0;
 	dy = 0;
 	
-	for (int i = 0; i < BLTS; ++i)if (bullets[i]->actived)bullets[i]->update(fTimeElapsed);
+	// for (int i = 0; i < BLTS; ++i)if (bullets[i]->actived)bullets[i]->update(fTimeElapsed);
 }
 
 void Player::send_cursor(HWND m_hWnd)

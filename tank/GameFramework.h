@@ -2,6 +2,7 @@
 #include "Timer.h"
 #include "Player.h"
 #include "Wall.h"
+#include "UI.h"
 class GameFramework {
 public:
 	GameFramework(void);
@@ -25,8 +26,10 @@ private:
 	HBITMAP						m_hBitmapFrameBuffer = NULL;
 
 	
+	UI* m_pUI = NULL;
 	Player* m_pPlayer = NULL; //멀티 플레이시 이중포인터로 바꿔주어야함
 	Player*	m_pOther[2];		// 다른 플레이어들
+	BulletObject* m_bullets[15];	// 총알은 플레이어당 5개 3*5 = 15;
 	GameObject** objects = NULL;
 
 	POINT obj_map[NOBJECTS] = {

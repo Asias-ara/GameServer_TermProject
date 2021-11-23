@@ -12,10 +12,12 @@ public:
 	void setDir(float _dx, float _dy);
 	void setPos(float _x, float _y);
 	void setActive();
+	void setId(int client_id);
 
 	float getPos_x();
 	float getPos_y();
 	bool getActive();
+	int getId();
 
-	void update(float fTimeElapsed);
+	virtual void update(float fTimeElapsed);
 };

@@ -4,10 +4,10 @@
 #include "Bullet.h"
 
 #define BLTS 5
-
+#define MAXHP 3
 class Player : public GameObject {
 	int id;				// player id
-	int hp;					// health point
+	int hp;					// current health point
 	float dx, dy;		
 	float px, py;			// prior position
 	float spd;				// speed 
@@ -24,6 +24,7 @@ public:
 	int getX();
 	int getY();
 	int getSpd();
+	int gethp();
 
 	void setId(int get_id);
 	void setType();

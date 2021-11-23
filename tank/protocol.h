@@ -1,7 +1,10 @@
-const char SERVERPORT = 49500;
+const short SERVERPORT = 9000;
 
 // 프로토콜 설계
 // 타입
+
+
+//
 // const int CLIENT_WIDTH = 640;
 
 // const int CLIENT_HEIGHT = 480;
@@ -20,7 +23,8 @@ const char SC_PACKET_DEAD = 4;
 const char SC_PACKET_MOVE = 5;
 const char SC_PACKET_FIRE = 6;
 const char SC_PACKET_AIM = 7;
-const char SC_PACKET_HIT = 8;
+const char SC_PACKET_BULLET = 8;
+const char SC_PACKET_HIT = 9;
 // Packet(Application) 정의
 #pragma pack(push, 1)
 
@@ -89,11 +93,23 @@ struct sc_packet_dead {
 	char type;
 	char id;
 };
+
 //다른 플레이어가 공격했을 경우 누가 쐈는지 알려주는 패킷
 struct sc_packet_fire {
 	char size;
 	char type;
 	char id;
+	char bullet_id;
+	float x;
+	float y;
+};
+
+struct sc_packet_bullet {
+	char size;
+	char type;
+	char id;
+	float x;
+	float y;
 };
 
 //서버에서 충돌처리를 통해 플레이어가 맞았을때 보내는 패킷
@@ -102,12 +118,5 @@ struct sc_packet_hit {
 	char type;
 	char id;
 };
-
-
-
 //------------------------------------------------------
-
-
-
-
 #pragma pack(pop)

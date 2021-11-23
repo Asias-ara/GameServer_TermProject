@@ -67,6 +67,8 @@ void GameFramework::BuildObjects()
 		objects[i] = w;
 	}
 	
+	for (auto& bullet : m_bullets)
+		bullet = new BulletObject(m_hInstance, -1.0f, -1.0f);
 
 	//플레이어의 정보를 서버로부터 받아서 생성
 	m_pPlayer = new Player(m_hInstance, get_my_id(), 150, 150);
@@ -80,6 +82,7 @@ void GameFramework::BuildObjects()
 		++i;
 	}
 	m_pPlayer->setObject(objects);
+	m_pUI = new UI(m_hInstance, m_pPlayer);
 }
 
 void GameFramework::ReleaseObjects()
@@ -215,32 +218,44 @@ void GameFramework::FrameAdvance()
 	// 위치 수정
 	m_pPlayer->setX(get_MyPosition_x()); 
 	m_pPlayer->setY(get_MyPosition_y());
-	//m_pPlayer->set_aim(get_Aim_x(get_my_id()), get_Aim_y(get_my_id()));
 	// 여기서 플레이어 총구 설정
+	//m_pPlayer->set_aim(get_Aim_x(get_my_id()), get_Aim_y(get_my_id()));
 
 	for (auto& other: m_pOther) {
 		other->setX(get_Position_x(other->getId()));
 		other->setY(get_Position_y(other->getId()));
-		//other->set_aim(get_Aim_x(other->getId()), get_Aim_y(other->getId()));
-
 		// 다른 플레이어 총구 설정
+		//other->set_aim(get_Aim_x(other->getId()),get_Aim_y(other->getId()));
 	}
+
+	//UI가 가지고있는 플레이어에 대한 정보를 업데이트 시켜줌
+	m_pUI->update(m_pPlayer);
 
 	float fTimeElapsed = GameTimer.GetTimeElapsed();
 	//애니메이션
 
 	ClearFrameBuffer(RGB(255, 255, 255));
-
+	
 	//렌더링
 	for(int i =0; i<NOBJECTS; ++i)
 		((Wall*)objects[i])->draw(hDCFrameBuffer);
+	// 총알 렌더링
+	for (int i = 0; i < 15; ++i) {
+		m_bullets[i]->setActive(get_bullet_active(i));
+		if (m_bullets[i]->getActive()) {	// 이미 움직이는 중이다
+			m_bullets[i]->setPos(get_bullet_x(i), get_bullet_y(i));
+			m_bullets[i]->draw(hDCFrameBuffer);
+		}
+	}
+
 	for (auto& other : m_pOther) {
+		
 		other->draw(hDCFrameBuffer);
 		other->update(m_hWnd,GameTimer.GetTimeElapsed());
 	}
 
 	m_pPlayer->draw(hDCFrameBuffer);
-
+	m_pUI->draw(hDCFrameBuffer);
 
 	PresentFrameBuffer();
 

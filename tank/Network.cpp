@@ -16,9 +16,17 @@ struct NetPlayer {
 	float y = 150;
 	float aim_x = 150;
 	float aim_y = 150;
+	bool bullet_active = false;
+};
+struct NetBullet {
+	bool active = false;
+	float x;
+	float y;
+	int player_id;
 };
 
 array<NetPlayer, 4> mPlayer;
+array<NetBullet, 15> mBullet;
 
 void err_display(const char* msg)
 {
@@ -58,7 +66,6 @@ void err_quit(const char* msg)
 int netInit()
 {
 	const char* SERVERIP;
-	char tempIP[16];
 	SERVERIP = "127.0.0.1";
 
 	// 윈속 초기화
@@ -66,7 +73,7 @@ int netInit()
 		return 1;
 
 	// socket()
-	sock = WSASocket(AF_INET, SOCK_STREAM, IPPROTO_TCP, 0, 0, WSA_FLAG_OVERLAPPED);
+	sock = socket(AF_INET, SOCK_STREAM, 0);
 	if (sock == INVALID_SOCKET) err_quit("socket()");
 
 	// connect()
@@ -74,16 +81,13 @@ int netInit()
 	ZeroMemory(&server_addr, sizeof(server_addr));
 	server_addr.sin_family = AF_INET;
 	server_addr.sin_port = htons(SERVERPORT);
-	inet_pton(AF_INET, SERVERIP, &server_addr.sin_addr);
-	int ret = connect(sock, reinterpret_cast<sockaddr*>(&server_addr), sizeof(server_addr));
-	int err_num = WSAGetLastError();
+	server_addr.sin_addr.s_addr = inet_addr(SERVERIP);
+	//inet_pton(AF_INET, SERVERIP, &server_addr.sin_addr);
+	int ret = connect(sock, (SOCKADDR*)&server_addr, sizeof(server_addr));
 	if (ret == SOCKET_ERROR) {
 		int err_num = WSAGetLastError();
-		if (WSA_IO_PENDING != err_num) {
-			cout << " EROOR : Connect " << endl;
-			err_quit("connect()");
-
-		}
+		cout << " EROOR : Connect " << endl;
+		err_quit("connect()");
 	}
 
 	do_recv();
@@ -109,7 +113,6 @@ void send_attack_packet()
 
 void send_move_packet(int direction)
 {
-	cout << "move" << endl;
 	cs_packet_move packet;
 	packet.size = sizeof(packet);
 	packet.type = CS_PACKET_MOVE;
@@ -133,7 +136,6 @@ void do_send(int num_bytes, void* mess)
 	memcpy(send_buf, mess, num_bytes);
 
 	retval = send(sock, send_buf, num_bytes, 0);
-	cout << "move" << sizeof(num_bytes) <<  endl;
 	if (retval == SOCKET_ERROR) { err_display("SEND()"); }
 }
 
@@ -159,7 +161,6 @@ void do_recv()
 			// 다른 클라이언트를 그려주는 객체에 id부여
 			// 다른 클라이언트 객체.id = packet->id;
 			packet->id;
-			cout << "other : "  << (int)packet->id << endl;
 			break;
 		}
 		case SC_PACKET_START_GAME: {
@@ -183,8 +184,6 @@ void do_recv()
 			mPlayer[p_id].y = pos_y;
 			mPlayer[p_id].aim_x = aim_x;
 			mPlayer[p_id].aim_y = aim_x;
-
-			cout << "[" << p_id << "] (pos_x, pos_y) :" << pos_x << "," << pos_y << "(aim_x, aim_y) : " << aim_x << "," << aim_y << endl;
 			break;
 		}
 		case SC_PACKET_DEAD: {
@@ -195,7 +194,18 @@ void do_recv()
 		}
 		case SC_PACKET_FIRE: {	// 이거 총알을 클라에서 계산하기로 했지만
 			sc_packet_fire* packet = reinterpret_cast<sc_packet_fire*> (p);
-			int p_id = packet->id;
+			int b_id = packet->bullet_id;
+			mBullet[b_id].active = true;
+			mBullet[b_id].player_id = packet->id;
+			mBullet[b_id].x = packet->x;
+			mBullet[b_id].y = packet->y;
+			break;
+		}
+		case SC_PACKET_BULLET: {
+			sc_packet_bullet* packet = reinterpret_cast<sc_packet_bullet*>(p);
+			int b_id = packet->id;
+			mBullet[b_id].x = packet->x;
+			mBullet[b_id].y = packet->y;
 			break;
 		}
 		case SC_PACKET_HIT: {
@@ -207,6 +217,7 @@ void do_recv()
 		}
 		p = p + packet_size;
 	}
+	memcpy(recv_buf, p, sizeof(*p));
 }
 
 bool get_start_game()
@@ -248,3 +259,28 @@ float get_Position_y(int id)
 {
 	return mPlayer[id].y;
 }
+
+bool get_fire(int id)
+{
+	return mPlayer[id].bullet_active;
+}
+void stop_fire(int id)
+{
+	 mPlayer[id].bullet_active = false;
+}
+
+float get_bullet_x(int bullet_id)
+{
+	return mBullet[bullet_id].x;
+}
+
+float get_bullet_y(int bullet_id)
+{
+	return mBullet[bullet_id].y;
+}
+
+float get_bullet_active(int bullet_id)
+{
+	return mBullet[bullet_id].active;
+}
+

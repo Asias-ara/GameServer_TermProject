@@ -28,6 +28,11 @@ void BulletObject::setActive()
 	actived = true;
 }
 
+void BulletObject::setId(int client_id)
+{
+	id = client_id;
+}
+
 
 float BulletObject::getPos_x()
 {
@@ -47,4 +52,9 @@ void BulletObject::update(float fTimeElapsed)
 {
 	x += spd * dx* fTimeElapsed;
 	y += spd * dy* fTimeElapsed;
+}
+
+int BulletObject::getId() 
+{
+	return id;
 }

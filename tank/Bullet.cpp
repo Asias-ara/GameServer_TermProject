@@ -4,6 +4,7 @@
 BulletObject::BulletObject(HINSTANCE g_hinst, float x, float y)
 	:GameObject(g_hinst,"img/bullet.bmp",x,y)
 {
+	id = 0;
 	spd = 100;
 	dx = 0;
 	dy = 0;
@@ -24,10 +25,25 @@ void BulletObject::setPos(float _x, float _y)
 
 }
 
-void BulletObject::setActive()
+void BulletObject::setActive(bool _act)
 {
-	actived = true;
+	actived = _act;
 }
+
+void BulletObject::setId(int client_id)
+{
+	id = client_id;
+}
+
+int BulletObject::getId()
+{
+	return id;
+}
+bool BulletObject::getActive()
+{
+	return actived;
+}
+
 
 void BulletObject::update(float fTimeElapsed)
 {
