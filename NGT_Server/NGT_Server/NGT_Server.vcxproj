@@ -142,12 +142,14 @@
     <ClCompile Include="Bullet.cpp" />
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="server.cpp" />
+    <ClCompile Include="Wall.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Bullet.h" />
     <ClInclude Include="header.h" />
     <ClInclude Include="Player.h" />
     <ClInclude Include="protocol.h" />
+    <ClInclude Include="Wall.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

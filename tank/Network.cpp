@@ -10,13 +10,14 @@ int retval = 0;
 char send_buf[BUFSIZE];
 char recv_buf[BUFSIZE];
 bool start_game = false;
+int hp = 3;
 
 struct NetPlayer {
 	float x = 150;
 	float y = 150;
 	float aim_x = 150;
 	float aim_y = 150;
-	bool bullet_active = false;
+	bool activate = true;
 };
 struct NetBullet {
 	bool active = false;
@@ -189,7 +190,7 @@ void do_recv()
 		case SC_PACKET_DEAD: {
 			sc_packet_dead* packet = reinterpret_cast<sc_packet_dead*>(p);
 			// 해당 id에 해당하는 id지워주기
-			int p_id = packet->id;
+			mPlayer[packet->id].activate = false;
 			break;
 		}
 		case SC_PACKET_FIRE: {	// 이거 총알을 클라에서 계산하기로 했지만
@@ -212,12 +213,13 @@ void do_recv()
 			sc_packet_hit* packet = reinterpret_cast<sc_packet_hit*> (p);
 			int p_id = packet->id;
 			// 나의 id면 hp유아이에서 체력 한칸을 없애주자
+			hp--;
 			break;
 		}
 		}
 		p = p + packet_size;
 	}
-	memcpy(recv_buf, p, sizeof(*p));
+	// memcpy(recv_buf, p, sizeof(*p));
 }
 
 bool get_start_game()
@@ -228,6 +230,16 @@ bool get_start_game()
 int get_my_id()
 {
 	return my_id;
+}
+
+int get_my_hp()
+{
+	return hp;
+}
+
+bool get_activate(int client_id)
+{
+	return mPlayer[client_id].activate;
 }
 
 float get_MyPosition_x()
@@ -258,15 +270,6 @@ float get_Position_x(int id)
 float get_Position_y(int id)
 {
 	return mPlayer[id].y;
-}
-
-bool get_fire(int id)
-{
-	return mPlayer[id].bullet_active;
-}
-void stop_fire(int id)
-{
-	 mPlayer[id].bullet_active = false;
 }
 
 float get_bullet_x(int bullet_id)

@@ -31,6 +31,7 @@ public:
 	void setX( int get_x );
 	void setY( int get_y );
 	void set_aim(float _x, float _y);
+	void Player::set_hp(int _hp);
 	//플레이어의 이전위치(이동전)로 설정
 	void setPrevPos();
 

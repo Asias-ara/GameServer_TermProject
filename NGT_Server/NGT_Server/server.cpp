@@ -1,15 +1,61 @@
 #include"header.h"
 #include"Player.h"
 #include"Bullet.h"
-
+#include"Wall.h"
 // 전역변수
+
 HANDLE			hEvent;				// 이벤트 핸들
+
 int				thread_count = 0;	// 몇개의 클라이언트가 접속했는지(몇개의 클라이언트 쓰레드가 만들어졌는지) 파악
 unordered_map<int, Player>g_clients;
 bool			start_game = false;
 const int		MAX_BULLET = 15;
 array<BulletObject, MAX_BULLET> bullets;
 
+POINT obj_map[NOBJECTS] = {
+		25,25,
+		75,25,
+		125,25,
+		175,25,
+		225,25,
+		275,25,
+		325,25,
+		375,25,
+		425,25,
+		475,25,
+		525,25,
+		575,25,
+		625,25,//TOP 
+		25,435,
+		75,435,
+		125,435,
+		175,435,
+		225,435,
+		275,435,
+		325,435,
+		375,435,
+		425,435,
+		475,435,
+		525,435,
+		575,435,
+		625,435,//BOTTOM 
+		25,75,
+		25,125,
+		25,175,
+		25,225,
+		25,275,
+		25,325,
+		25,375, //LEFT
+		625,75,
+		625,125,
+		625,175,
+		625,225,
+		625,275,
+		625,325,
+		625,375, //RIGHT
+		325,125,
+		325,325,
+};
 // 함수선언
 DWORD WINAPI	ProcessClient(LPVOID arg);			// 클라이언트 쓰레드
 DWORD WINAPI	SendPacket(LPVOID arg);				// 샌드를 하는 쓰레드
@@ -19,15 +65,11 @@ void			send_other_info_packet(SOCKET* client_socket, int client_id, int other_id
 void			send_start_game_packet(SOCKET* client_socket, int client_id);				// 게임이 시작하면 모든 클라이언트에게 패킷 전송	
 void			send_move_packet(SOCKET* client_socket, int client_id);
 void			send_dead_packet(SOCKET* client_socket, int client_id);
-void			send_fire_packet(SOCKET* client_socket, int client_id);
-void			send_hit_packet(SOCKET* client_socket, int client_id);
-void			process_client(int client_id,char*p);
-void			send_move_packet(SOCKET* client_socket, int client_id);
-void			send_dead_packet(SOCKET* client_socket, int client_id);
-void			send_fire_packet(SOCKET* client_socket, int client_id);
+void			send_fire_packet(SOCKET* client_socket, int client_id, int bullet_id);
 void			send_bullet_packet(SOCKET* client_socket, int bullet_id);
 void			send_hit_packet(SOCKET* client_socket, int client_id);
-
+void			process_client(int client_id,char*p);
+bool			collide(const RECT& rect1, const RECT& rect2);
 
 void err_display(const char* msg)
 {
@@ -119,9 +161,8 @@ int main(int argc, char* argv[])
 	int addrlen;
 
 	// 이벤트 사용 준비
-	hEvent = CreateEvent(NULL, FALSE, FALSE, NULL);		// 콘솔창에 쓰는것은 비신호로 시작
+	hEvent = CreateEvent(NULL, FALSE, TRUE, NULL);		// 콘솔창에 쓰는것은 비신호로 시작
 	if (hEvent == NULL) return 1;
-
 	HANDLE hThread;
 	while (thread_count < 3) {
 		// accept()
@@ -146,6 +187,9 @@ int main(int argc, char* argv[])
 	if (hThread == NULL) { cout << "쓰레드 생성 에러" << endl; }
 
 	while (true) {
+		//for (auto& cl:g_clients) {
+		//	cl.second.update(0.0001f);
+		//}
 		for (auto& bullet : bullets) {
 			if (bullet.getActive()) {
 				bullet.update(0.01f);
@@ -195,6 +239,14 @@ DWORD WINAPI ProcessClient(LPVOID arg)
 	while (1) {
 		if (start_game == false) continue;
 		retval = recv(client_sock, buf, len, 0);
+		if (retval == SOCKET_ERROR) {
+			cout << id << "강제 연결 끊김" << endl;
+			for (auto& cl : g_clients) {
+				if (cl.second.m_id == id) continue;
+				send_dead_packet(&cl.second.m_c_socket, id);
+			}
+			break;
+		}
 		process_client(id, buf);
 		this_thread::sleep_for(10ms);
 	}
@@ -221,7 +273,7 @@ DWORD WINAPI SendPacket(LPVOID arg) {
 		this_thread::sleep_for(10ms);
 	}
 }
-
+array<Wall, NOBJECTS> g_walls;
 void gameStart()
 {
 	cout << "게임시작" << endl;
@@ -234,6 +286,10 @@ void gameStart()
 	g_clients[3].m_pos_y = 400;
 	for (auto& cl : g_clients) {
 		send_start_game_packet(&cl.second.m_c_socket, cl.second.m_id);
+		cl.second.update(0.001f);
+	}
+	for (int i = 0; i < NOBJECTS; ++i) {
+		g_walls[i] =  Wall( obj_map[i].x, obj_map[i].y);
 	}
 	start_game = true;
 }
@@ -328,18 +384,54 @@ void process_client(int client_id, char* p)
 	{
 	case CS_PACKET_MOVE:{
 		cs_packet_move* packet = reinterpret_cast<cs_packet_move*>(p);
+		//cl.m_py = cl.m_pos_y;
+		//cl.m_px = cl.m_pos_x;
 		switch (packet->direction)//이동처리 충돌체크 x
 		{
-		case 0: cl.m_pos_y--; break;
-		case 1:cl.m_pos_y++; break;
-		case 2:cl.m_pos_x--; break;
-		case 3:cl.m_pos_x++; break;
+		case 0:
+			//cl.m_pos_y--;
+			cl.m_dy-=cl.m_spd*0.001f;
+			break;
+		case 1:
+			cl.m_dy += cl.m_spd * 0.001f;
+			//cl.m_pos_y++; 
+			break;
+		case 2:
+			cl.m_dx -= cl.m_spd * 0.001f;
+			//cl.m_pos_x--; 
+			break;
+		case 3:
+			cl.m_dx += cl.m_spd * 0.001f;
+			//cl.m_pos_x++;
+			break;
 		default:
 			cout << "잘못된값이 왔습니다 종료합니다 " << client_id << endl;
 
 			exit(-1);	
 
 		}
+
+		cout <<  "[" << cl.m_id << "] x : " << cl.m_pos_x << "y :" << cl.m_pos_y << endl;
+		cl.update(0.001f);
+		for (auto& other : g_clients)
+		{
+			if (client_id == other.first)continue;
+			if (collide(other.second.collision_rect,cl.collision_rect))
+			{
+				cout << "충돌" << endl;
+				cl.setPrevPos();
+			}
+		}
+		for (auto& wall : g_walls)
+		{
+			if (collide(wall.collision_rect, cl.collision_rect))
+			{
+				cout << "벽 충돌" << endl;
+				cl.setPrevPos();
+			}
+		}
+		// 임시적으로 해 놓은것
+
 		break;
 	}
 	case CS_PACKET_AIM: {
@@ -349,7 +441,7 @@ void process_client(int client_id, char* p)
 		break;
 	}
 	case CS_PACKET_ATTACK:
-		for (int i = 0; i < MAX_BULLET; ++i) {
+		for (int i = (cl.m_id - 1) * 5; i <= (cl.m_id * 5) - 1; ++i) {		//0~4 : 1번플레이어 총알, 5~9 : 1번플레이어 총알, 10~14 : 3번플레이어 총알,{
 			BulletObject* bl = &bullets[i];
 			if (bl->getActive() == false) {
 				bl->setActive();
@@ -369,4 +461,14 @@ void process_client(int client_id, char* p)
 		}
 		break;
 	}
+}
+
+bool collide(const RECT& rect1, const RECT& rect2)
+{
+	if (rect1.left > rect2.right) return false;
+	if (rect1.top > rect2.bottom) return false;
+	if (rect1.right < rect2.left) return false;
+	if (rect1.bottom < rect2.top) return false;
+
+	return true;
 }

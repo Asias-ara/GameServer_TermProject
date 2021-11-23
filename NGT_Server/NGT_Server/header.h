@@ -12,16 +12,18 @@
 #include "protocol.h"
 
 #define BUFSIZE 2048
-
+#define NOBJECTS 42
 using namespace std;
 
 
 //값 다시 가져와야함
-const int bullet_width = 10;
-const int bullet_height = 10;
+const int bullet_width = 50;
+const int bullet_height = 50;
 
+const int wall_width = 10;
+const int wall_height = 10;
 	  
-const int player_width = 10;
-const int player_height = 10;
+const int player_width = 50;
+const int player_height = 50;
 	  
 

@@ -218,6 +218,7 @@ void GameFramework::FrameAdvance()
 	// 위치 수정
 	m_pPlayer->setX(get_MyPosition_x()); 
 	m_pPlayer->setY(get_MyPosition_y());
+	m_pPlayer->set_hp(get_my_hp());
 	// 여기서 플레이어 총구 설정
 	//m_pPlayer->set_aim(get_Aim_x(get_my_id()), get_Aim_y(get_my_id()));
 
@@ -249,12 +250,13 @@ void GameFramework::FrameAdvance()
 	}
 
 	for (auto& other : m_pOther) {
-		
+		if (get_activate(other->getId()) == false) continue;
 		other->draw(hDCFrameBuffer);
 		other->update(m_hWnd,GameTimer.GetTimeElapsed());
 	}
-
-	m_pPlayer->draw(hDCFrameBuffer);
+	if (get_activate(m_pPlayer->getId())) {
+		m_pPlayer->draw(hDCFrameBuffer);
+	}
 	m_pUI->draw(hDCFrameBuffer);
 
 	PresentFrameBuffer();

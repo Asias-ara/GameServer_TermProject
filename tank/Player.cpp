@@ -10,7 +10,7 @@ Player::Player(HINSTANCE g_hinst, char id, float x, float y)
 	dx = 0;
 	dy = 0;
 	spd = 100;
-	hp = 1;
+	hp = 3;
 	GetCursorPos(&CursorPos);
 	get_BoundingRect(collision_rect);
 
@@ -55,6 +55,11 @@ void Player::set_aim(float _x, float _y)
 {
 	CursorPos.x = _x; 
 	CursorPos.y = _y;
+}
+
+void Player::set_hp(int _hp)
+{
+	hp = _hp;
 }
 
 void Player::setPrevPos()

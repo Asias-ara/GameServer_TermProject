@@ -27,7 +27,10 @@ void do_recv();
 
 bool get_start_game();
 
+bool get_activate(int client_id);
+
 int get_my_id();
+int get_my_hp();
 
 float get_MyPosition_x();
 float get_MyPosition_y();
@@ -37,9 +40,6 @@ float get_Position_y(int id);
 
 float get_Aim_x(int id);
 float get_Aim_y(int id);
-
-bool get_fire(int id);
-void stop_fire(int id);
 
 float get_bullet_x(int bullet_id);
 float get_bullet_y(int bullet_id);

@@ -19,5 +19,5 @@ public:
 	bool getActive();
 	int getId();
 
-	virtual void update(float fTimeElapsed);
+	 void update(float fTimeElapsed);
 };
