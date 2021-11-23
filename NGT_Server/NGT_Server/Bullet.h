@@ -17,5 +17,5 @@ public:
 	float getPos_y();
 	bool getActive();
 
-	virtual void update(float fTimeElapsed);
+	void update(float fTimeElapsed);
 };
