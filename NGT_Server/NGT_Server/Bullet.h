@@ -11,7 +11,7 @@ public:
 
 	void setDir(float _dx, float _dy);
 	void setPos(float _x, float _y);
-	void setActive();
+	void setActive(bool _act);
 	void setId(int client_id);
 
 	float getPos_x();

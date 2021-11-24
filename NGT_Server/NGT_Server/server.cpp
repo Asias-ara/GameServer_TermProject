@@ -7,10 +7,11 @@
 HANDLE			hEvent;				// 이벤트 핸들
 
 int				thread_count = 0;	// 몇개의 클라이언트가 접속했는지(몇개의 클라이언트 쓰레드가 만들어졌는지) 파악
-unordered_map<int, Player>g_clients;
 bool			start_game = false;
 const int		MAX_BULLET = 15;
+unordered_map<int, Player>g_clients;
 array<BulletObject, MAX_BULLET> bullets;
+array<Wall, NOBJECTS> g_walls;
 
 POINT obj_map[NOBJECTS] = {
 		25,25,
@@ -67,9 +68,10 @@ void			send_move_packet(SOCKET* client_socket, int client_id);
 void			send_dead_packet(SOCKET* client_socket, int client_id);
 void			send_fire_packet(SOCKET* client_socket, int client_id, int bullet_id);
 void			send_bullet_packet(SOCKET* client_socket, int bullet_id);
-void			send_hit_packet(SOCKET* client_socket, int client_id);
+void			send_hit_packet(SOCKET* client_socket, int client_id, int bullet_id);
 void			process_client(int client_id,char*p);
 bool			collide(const RECT& rect1, const RECT& rect2);
+bool			collide_bullet(const RECT& rect1, const POINT& bullet);
 
 void err_display(const char* msg)
 {
@@ -190,9 +192,38 @@ int main(int argc, char* argv[])
 		//for (auto& cl:g_clients) {
 		//	cl.second.update(0.0001f);
 		//}
-		for (auto& bullet : bullets) {
-			if (bullet.getActive()) {
-				bullet.update(0.01f);
+		for (int i = 0; i < MAX_BULLET; ++i) {
+			BulletObject* bullet = &bullets[i];
+			if (bullet->getActive()) {
+				bullet->update(0.01f);
+				POINT p;
+				p.x = bullet->getPos_x();
+				p.y = bullet->getPos_y();
+				for (auto& cl : g_clients) {
+					if (cl.second.active == false) continue;
+					if (cl.second.m_id == bullet->getId()) continue;
+					if (collide_bullet(cl.second.collision_rect, p)) {
+						cl.second.m_hp--;
+						for (int j = 1; j <= 3; ++j)
+							send_hit_packet(&g_clients[j].m_c_socket, cl.second.m_id, i);
+						if (cl.second.m_hp == 0) {
+							cl.second.active = false;
+							cl.second.m_pos_x = 4000;
+							cl.second.m_pos_y = 4000;
+							cl.second.update(0.001f);
+							for (int j = 1; j <= 3; ++j)
+								send_dead_packet(&g_clients[j].m_c_socket, cl.second.m_id);
+						}
+						bullet->setActive(false);
+					}
+				}
+				for (auto& wall : g_walls) {
+					if (collide_bullet(wall.collision_rect, p)){
+						for (int j = 1; j <= 3; ++j)
+							send_hit_packet(&g_clients[j].m_c_socket, 0, i);
+						bullet->setActive(false);
+					}
+				}
 			}
 		}
 		this_thread::sleep_for(10ms);
@@ -245,10 +276,14 @@ DWORD WINAPI ProcessClient(LPVOID arg)
 				if (cl.second.m_id == id) continue;
 				send_dead_packet(&cl.second.m_c_socket, id);
 			}
-			break;
 		}
 		process_client(id, buf);
 		this_thread::sleep_for(10ms);
+		if (g_clients[id].active == false) break;
+	}
+
+	while (1) {		// 죽으면 보내주는것을 받기는 하지만 처리는 해주지 말자
+		retval = recv(client_sock, buf, len, 0);
 	}
 
 	// 서버의 콘솔창에 접속 종료를 띄울경우 주석 풀기
@@ -273,7 +308,7 @@ DWORD WINAPI SendPacket(LPVOID arg) {
 		this_thread::sleep_for(10ms);
 	}
 }
-array<Wall, NOBJECTS> g_walls;
+
 void gameStart()
 {
 	cout << "게임시작" << endl;
@@ -365,16 +400,15 @@ void send_bullet_packet(SOCKET* client_socket, int bullet_id)
 	send(*client_socket, reinterpret_cast<const char*>(&packet), packet.size, 0);
 }
 
-void send_hit_packet(SOCKET* client_socket, int client_id)
+void send_hit_packet(SOCKET* client_socket, int client_id, int bullet_id)
 {
-	sc_packet_move packet;
+	sc_packet_hit packet;
 	packet.size = sizeof(packet);
-	packet.type = SC_PACKET_FIRE;
+	packet.type = SC_PACKET_HIT;
 	packet.id = client_id;
+	packet.bullet_id = bullet_id;
 	send(*client_socket, reinterpret_cast<const char*>(&packet), packet.size, 0);
 }
-
-
 
 void process_client(int client_id, char* p)
 {
@@ -411,7 +445,7 @@ void process_client(int client_id, char* p)
 
 		}
 
-		cout <<  "[" << cl.m_id << "] x : " << cl.m_pos_x << "y :" << cl.m_pos_y << endl;
+		// cout <<  "[" << cl.m_id << "] x : " << cl.m_pos_x << "y :" << cl.m_pos_y << endl;
 		cl.update(0.001f);
 		for (auto& other : g_clients)
 		{
@@ -444,7 +478,7 @@ void process_client(int client_id, char* p)
 		for (int i = (cl.m_id - 1) * 5; i <= (cl.m_id * 5) - 1; ++i) {		//0~4 : 1번플레이어 총알, 5~9 : 1번플레이어 총알, 10~14 : 3번플레이어 총알,{
 			BulletObject* bl = &bullets[i];
 			if (bl->getActive() == false) {
-				bl->setActive();
+				bl->setActive(true);
 				bl->setId(cl.m_id);
 				bl->setPos(cl.m_pos_x, cl.m_pos_y);
 				
@@ -471,4 +505,14 @@ bool collide(const RECT& rect1, const RECT& rect2)
 	if (rect1.bottom < rect2.top) return false;
 
 	return true;
+}
+
+bool collide_bullet(const RECT& rect1, const POINT& bullet)
+{
+	if (bullet.y >= rect1.top && bullet.y <= rect1.bottom) {
+		if (bullet.x <= rect1.right && bullet.x >= rect1.left) {
+			return true;
+		}
+	}
+	return false;
 }

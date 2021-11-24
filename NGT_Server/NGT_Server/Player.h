@@ -19,6 +19,7 @@ public:
 	int m_prev_size;
 	char m_buf[BUFSIZE];
 	RECT collision_rect;	// collision rect
+	bool active;
 public:
 	void get_BoundingRect();
 	void update(float fTimeElapsed);

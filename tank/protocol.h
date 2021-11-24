@@ -5,9 +5,9 @@ const short SERVERPORT = 9000;
 
 
 //
-// const int CLIENT_WIDTH = 640;
+//const int CLIENT_WIDTH = 640;
 
-// const int CLIENT_HEIGHT = 480;
+//const int CLIENT_HEIGHT = 480;
 
 
 //client to server
@@ -117,6 +117,7 @@ struct sc_packet_hit {
 	char size;
 	char type;
 	char id;
+	char bullet_id;
 };
 //------------------------------------------------------
 #pragma pack(pop)

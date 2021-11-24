@@ -117,6 +117,7 @@ struct sc_packet_hit {
 	char size;
 	char type;
 	char id;
+	char bullet_id;
 };
 //------------------------------------------------------
 #pragma pack(pop)

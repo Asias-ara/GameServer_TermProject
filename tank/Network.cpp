@@ -10,7 +10,7 @@ int retval = 0;
 char send_buf[BUFSIZE];
 char recv_buf[BUFSIZE];
 bool start_game = false;
-int hp = 3;
+int n_hp = 3;
 
 struct NetPlayer {
 	float x = 150;
@@ -212,8 +212,10 @@ void do_recv()
 		case SC_PACKET_HIT: {
 			sc_packet_hit* packet = reinterpret_cast<sc_packet_hit*> (p);
 			int p_id = packet->id;
+			cout << "hit" << p_id << endl;
 			// 나의 id면 hp유아이에서 체력 한칸을 없애주자
-			hp--;
+			if (p_id == my_id) n_hp -= 1;
+			mBullet[packet->bullet_id].active = false;
 			break;
 		}
 		}
@@ -234,7 +236,7 @@ int get_my_id()
 
 int get_my_hp()
 {
-	return hp;
+	return n_hp;
 }
 
 bool get_activate(int client_id)

@@ -23,9 +23,9 @@ void BulletObject::setPos(float _x, float _y)
 
 }
 
-void BulletObject::setActive()
+void BulletObject::setActive(bool _act)
 {
-	actived = true;
+	actived = _act;
 }
 
 void BulletObject::setId(int client_id)

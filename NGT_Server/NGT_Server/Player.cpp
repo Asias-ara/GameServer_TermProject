@@ -4,6 +4,7 @@ Player::Player():m_aim_x(0.f),m_aim_y(0.f),m_pos_x(0.f),m_pos_y(0.f),m_id(0)
 {
 	get_BoundingRect();
 	m_spd = 2000;
+	active = true;
 }
 
 
@@ -11,6 +12,7 @@ Player::Player(SOCKET& s, int id) : m_c_socket(s), m_id(id), m_aim_x(0.f), m_aim
 {
 	get_BoundingRect();
 	m_spd = 2000;
+	active = true;
 }
 
 Player::~Player()
