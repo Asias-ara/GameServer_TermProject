@@ -20,8 +20,8 @@ using namespace std;
 const int bullet_width = 50;
 const int bullet_height = 50;
 
-const int wall_width = 10;
-const int wall_height = 10;
+const int wall_width = 50;
+const int wall_height = 50;
 	  
 const int player_width = 50;
 const int player_height = 50;

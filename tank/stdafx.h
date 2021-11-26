@@ -29,8 +29,8 @@ using namespace std;
 
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 
-#define CLIENT_WIDTH			1280
-#define CLIENT_HEIGHT			720
+#define CLIENT_WIDTH			800
+#define CLIENT_HEIGHT			800
 #define DIR_FORWARD				0x01
 #define DIR_BACKWARD			0x02
 #define DIR_LEFT				0x04
@@ -38,9 +38,11 @@ using namespace std;
 #define DIR_UP					0x10
 #define DIR_DOWN				0x20
 
-#define __DEBUG
+//#define __DEBUG
 
-#define NOBJECTS 42 //벽40  + 장애물 2 + 다른 플레이어
+#define PI 3.141592654
+
+#define NOBJECTS 16 //벽40  + 장애물 2 + 다른 플레이어
 
 extern bool collide(const RECT& rect1, const RECT& rect2);
 extern void CharToWChar(const char* pstrSrc, wchar_t pwstrDest[]);

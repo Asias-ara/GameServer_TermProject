@@ -3,7 +3,7 @@
 
 UI::UI(HINSTANCE g_hinst,Player *p)
 {
-	x = 500;
+	x = 700;
 	y = 50;
 	offset = 1.2f;
 	get_player(p);

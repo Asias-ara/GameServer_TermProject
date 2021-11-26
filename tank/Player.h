@@ -6,11 +6,14 @@
 #define BLTS 5
 #define MAXHP 3
 class Player : public GameObject {
-	int id;				// player id
+	int id;					// player id
 	int hp;					// current health point
 	float dx, dy;		
 	float px, py;			// prior position
 	float spd;				// speed 
+	GameBitmap** pbmp = NULL;
+	GameBitmap** phbmp = NULL;
+	int dir = 0,hdir = 0;				//0 top 1bottom 2right 3left
 	POINT CursorPos;
 	RECT collision_rect;	// collision rect
 	HDC pdc;
@@ -41,8 +44,11 @@ public:
 	void fire();
 	//키보드 방향키로 이동
 	void Move(DWORD dwDirection, float frame_time);
+	void rotate(HWND m_hWnd);
+	//다른플레이어 이동시 방향 수정용 함수
+	void rotate2(float, float);
 
-
+	virtual void get_BoundingRect(RECT& rect);
 	virtual void update(HWND m_hWnd, float fTimeElapsed);
 	virtual void draw(const HDC& mem1dc);
 

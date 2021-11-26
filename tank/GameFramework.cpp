@@ -59,11 +59,11 @@ void GameFramework::PresentFrameBuffer()
 void GameFramework::BuildObjects()
 {
 	//°´Ã¼ »ý¼º
-	
-	
+
 	objects = new GameObject * [NOBJECTS];
 	for (int i = 0; i < NOBJECTS; ++i) {
-		Wall* w= new Wall(m_hInstance, obj_map[i].x, obj_map[i].y);
+		Wall* w= new Wall(m_hInstance, obj_map[i].left, obj_map[i].top, obj_map[i].right, obj_map[i].bottom);
+		//w->ImagetoScreen();
 		objects[i] = w;
 	}
 	
@@ -83,6 +83,7 @@ void GameFramework::BuildObjects()
 	}
 	m_pPlayer->setObject(objects);
 	m_pUI = new UI(m_hInstance, m_pPlayer);
+	m_pBG = new BG(m_hInstance,CLIENT_WIDTH/2,CLIENT_HEIGHT/2);
 }
 
 void GameFramework::ReleaseObjects()
@@ -129,12 +130,17 @@ void GameFramework::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM 
 	switch (nMessageID)
 	{
 	case WM_RBUTTONDOWN:
+		POINT pt;
+		GetCursorPos(&pt);
+		ScreenToClient(m_hWnd, &pt);
+		cout << "Mouse X :" << pt.x << " Mouse Y :" << pt.y << endl;
 		break;
-	case WM_LBUTTONDOWN: {
+	case WM_LBUTTONDOWN: 
+		
+		m_pPlayer->rotate(hWnd);
 		send_attack_packet();
-		//m_pPlayer->fire();
 		break;
-	}
+	
 	case WM_LBUTTONUP:
 	case WM_RBUTTONUP:
 		break;
@@ -216,6 +222,7 @@ void GameFramework::FrameAdvance()
 	ProcessInput();
 
 	// À§Ä¡ ¼öÁ¤
+	m_pPlayer->rotate2(get_MyPosition_x(), get_MyPosition_y());
 	m_pPlayer->setX(get_MyPosition_x()); 
 	m_pPlayer->setY(get_MyPosition_y());
 	m_pPlayer->set_hp(get_my_hp());
@@ -223,6 +230,7 @@ void GameFramework::FrameAdvance()
 	//m_pPlayer->set_aim(get_Aim_x(get_my_id()), get_Aim_y(get_my_id()));
 
 	for (auto& other: m_pOther) {
+		other->rotate2(get_Position_x(other->getId()), get_Position_y(other->getId()));
 		other->setX(get_Position_x(other->getId()));
 		other->setY(get_Position_y(other->getId()));
 		// ´Ù¸¥ ÇÃ·¹ÀÌ¾î ÃÑ±¸ ¼³Á¤
@@ -238,6 +246,7 @@ void GameFramework::FrameAdvance()
 	ClearFrameBuffer(RGB(255, 255, 255));
 	
 	//·»´õ¸µ
+	m_pBG->draw(hDCFrameBuffer);
 	for(int i =0; i<NOBJECTS; ++i)
 		((Wall*)objects[i])->draw(hDCFrameBuffer);
 	// ÃÑ¾Ë ·»´õ¸µ

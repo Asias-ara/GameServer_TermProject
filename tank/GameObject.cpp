@@ -1,6 +1,13 @@
 #include "stdafx.h"
 #include "GameObject.h"
 
+GameObject::GameObject(HINSTANCE g_hinst, float x, float y)
+{
+	this->x = x;
+	this->y = y;
+	
+}
+
 GameObject::GameObject(HINSTANCE g_hinst, char* filename, float x, float y)
 {
 	this->x = x;
@@ -8,7 +15,6 @@ GameObject::GameObject(HINSTANCE g_hinst, char* filename, float x, float y)
 	this->bitmap = new GameBitmap(filename, g_hinst);
 
 }
-
 
 void GameObject::get_BoundingRect(RECT& rect)
 {
@@ -20,6 +26,7 @@ void GameObject::get_BoundingRect(RECT& rect)
 	rect.right = x + hw;
 	rect.bottom = y + hh;
 }
+
 void GameObject::draw_BoundingRect(const HDC hdc, const RECT rect)
 {
 	HPEN hpen = CreatePen(PS_SOLID, 1, RGB(255, 0, 0));
