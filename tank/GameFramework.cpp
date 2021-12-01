@@ -1,10 +1,11 @@
 #include "stdafx.h"
 #include "GameFramework.h"
 #include "Network.h"
-
+#include<chrono>
 GameFramework::GameFramework()
 {
 	_tcscpy_s(szFrameRate, _T("Tank Hero ("));
+	start_t = chrono::high_resolution_clock::now();
 }
 
 GameFramework::~GameFramework()
@@ -96,7 +97,10 @@ void GameFramework::ProcessInput()
 {
 	static UCHAR pKeyBuffer[256];
 	DWORD dwDirection = 0;
-	if (GetKeyboardState(pKeyBuffer))
+
+	auto t = chrono::duration_cast<chrono::milliseconds>(chrono::high_resolution_clock::now() - start_t).count();
+	if (GetKeyboardState(pKeyBuffer) && t >= 10)
+
 	{
 		if (pKeyBuffer[VK_UP] & 0xF0) dwDirection |= DIR_FORWARD;
 		if (pKeyBuffer[VK_DOWN] & 0xF0) dwDirection |= DIR_BACKWARD;
@@ -104,6 +108,8 @@ void GameFramework::ProcessInput()
 		if (pKeyBuffer[VK_RIGHT] & 0xF0) dwDirection |= DIR_RIGHT;
 		if (pKeyBuffer[VK_PRIOR] & 0xF0) dwDirection |= DIR_UP;
 		if (pKeyBuffer[VK_NEXT] & 0xF0) dwDirection |= DIR_DOWN;
+
+		start_t = chrono::high_resolution_clock::now();
 	}
 	
 	
@@ -138,7 +144,7 @@ void GameFramework::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM 
 	case WM_LBUTTONDOWN: 
 		
 		m_pPlayer->rotate(hWnd);
-		send_attack_packet();
+		send_attack_packet( m_pPlayer->getCursorX(), m_pPlayer->getCursorY());
 		break;
 	
 	case WM_LBUTTONUP:

@@ -50,6 +50,8 @@ struct cs_packet_aim
 struct cs_packet_attack {
 	char size;
 	char type;
+	float x;
+	float y;
 };
 
 

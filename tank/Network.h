@@ -14,7 +14,7 @@ int netInit();
 
 int netclose();
 
-void send_attack_packet();
+void send_attack_packet(float aim_x, float aim_y);
 
 void send_aim_packet(float x, float y);
 

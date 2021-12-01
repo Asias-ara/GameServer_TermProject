@@ -168,6 +168,15 @@ void Player::rotate(HWND m_hWnd)
 	}
 }
 
+int Player::getCursorX()
+{
+	return CursorPos.x;
+}
+int Player::getCursorY()
+{
+	return CursorPos.y;
+}
+
 void Player::draw(const HDC& mem1dc)
 {
 	GameObject::draw(mem1dc, collision_rect);
@@ -314,5 +323,5 @@ void Player::send_cursor(HWND m_hWnd)
 	GetCursorPos(&CursorPos);
 
 	ScreenToClient(m_hWnd, &CursorPos);
-	send_aim_packet(CursorPos.x, CursorPos.y);
+	//send_aim_packet(CursorPos.x, CursorPos.y);
 }

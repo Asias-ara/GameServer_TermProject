@@ -2,10 +2,12 @@
 #include"Player.h"
 #include"Bullet.h"
 #include"Wall.h"
+
+
+HANDLE			hSendEvent;
+HANDLE			hCalculateEvent;
+
 // 전역변수
-
-HANDLE			hEvent;				// 이벤트 핸들
-
 int				thread_count = 0;	// 몇개의 클라이언트가 접속했는지(몇개의 클라이언트 쓰레드가 만들어졌는지) 파악
 bool			start_game = false;
 const int		MAX_BULLET = 15;
@@ -137,8 +139,12 @@ int main(int argc, char* argv[])
 	int addrlen;
 
 	// 이벤트 사용 준비
-	hEvent = CreateEvent(NULL, FALSE, TRUE, NULL);		// 콘솔창에 쓰는것은 비신호로 시작
-	if (hEvent == NULL) return 1;
+
+	hSendEvent = CreateEvent(NULL, FALSE, TRUE, NULL);		// 콘솔창에 쓰는것은 비신호로 시작
+	if (hSendEvent == NULL) return 1;
+	hCalculateEvent = CreateEvent(NULL, FALSE, TRUE, NULL);		// 콘솔창에 쓰는것은 비신호로 시작
+
+	if (hCalculateEvent == NULL) return 1;
 	HANDLE hThread;
 	while (thread_count < 3) {
 		// accept()
@@ -160,12 +166,15 @@ int main(int argc, char* argv[])
 	gameStart();
 	HANDLE hSend;
 	hThread = CreateThread(NULL, 0, SendPacket, NULL, 0, NULL);
+	SetEvent(hCalculateEvent);
 	if (hThread == NULL) { cout << "쓰레드 생성 에러" << endl; }
+	SetEvent(hCalculateEvent);
 
 	while (true) {
 		//for (auto& cl:g_clients) {
 		//	cl.second.update(0.0001f);
 		//}
+		WaitForSingleObject(hSendEvent, INFINITE);
 		for (int i = 0; i < MAX_BULLET; ++i) {
 			BulletObject* bullet = &bullets[i];
 			if (bullet->getActive()) {
@@ -200,7 +209,8 @@ int main(int argc, char* argv[])
 				}
 			}
 		}
-		this_thread::sleep_for(10ms);
+		// this_thread::sleep_for(10ms);
+		SetEvent(hCalculateEvent);
 	}
 	closesocket(sock);
 	WSACleanup();
@@ -252,7 +262,7 @@ DWORD WINAPI ProcessClient(LPVOID arg)
 			}
 		}
 		process_client(id, buf);
-		this_thread::sleep_for(10ms);
+		// this_thread::sleep_for(20ms);
 		if (g_clients[id].active == false) break;
 	}
 
@@ -268,6 +278,7 @@ DWORD WINAPI ProcessClient(LPVOID arg)
 
 DWORD WINAPI SendPacket(LPVOID arg) {
 	while (1) {
+		WaitForSingleObject(hCalculateEvent, INFINITE);
 		for (auto& pl : g_clients) {
 			for (int i = 1; i <= 3; ++i)
 				send_move_packet(&pl.second.m_c_socket, i);
@@ -279,10 +290,12 @@ DWORD WINAPI SendPacket(LPVOID arg) {
 				}
 			}
 		}
+		SetEvent(hSendEvent);
 		this_thread::sleep_for(10ms);
+		
 	}
 }
-
+ 
 void gameStart()
 {
 	cout << "게임시작" << endl;
@@ -398,18 +411,18 @@ void process_client(int client_id, char* p)
 		{
 		case 0:
 			//cl.m_pos_y--;
-			cl.m_dy-=cl.m_spd*0.001f;
+			cl.m_dy-=cl.m_spd*0.002f;
 			break;
 		case 1:
-			cl.m_dy += cl.m_spd * 0.001f;
+			cl.m_dy += cl.m_spd * 0.002f;
 			//cl.m_pos_y++; 
 			break;
 		case 2:
-			cl.m_dx -= cl.m_spd * 0.001f;
+			cl.m_dx -= cl.m_spd * 0.002f;
 			//cl.m_pos_x--; 
 			break;
 		case 3:
-			cl.m_dx += cl.m_spd * 0.001f;
+			cl.m_dx += cl.m_spd * 0.002f;
 			//cl.m_pos_x++;
 			break;
 		default:
@@ -449,7 +462,10 @@ void process_client(int client_id, char* p)
 		break;
 	}
 	case CS_PACKET_ATTACK:
+		cs_packet_attack* packet = reinterpret_cast<cs_packet_attack*>(p);
 		for (int i = (cl.m_id - 1) * 5; i <= (cl.m_id * 5) - 1; ++i) {		//0~4 : 1번플레이어 총알, 5~9 : 1번플레이어 총알, 10~14 : 3번플레이어 총알,{
+			cl.m_aim_x = packet->x;
+			cl.m_aim_y = packet->y;
 			BulletObject* bl = &bullets[i];
 			if (bl->getActive() == false) {
 				bl->setActive(true);

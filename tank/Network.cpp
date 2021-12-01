@@ -1,10 +1,12 @@
 #include "stdafx.h"
 #include "Network.h"
+#include"Timer.h"
 //#include <WS2tcpip.h>
 
 WSADATA wsa;
 SOCKET sock;
 SOCKADDR_IN serveraddr;
+GameTimer gt;
 int my_id = 0;
 int retval = 0;
 char send_buf[BUFSIZE];
@@ -104,11 +106,13 @@ int netclose()
 	return 0;
 }
 
-void send_attack_packet()
+void send_attack_packet(float aim_x, float aim_y)
 {
 	cs_packet_attack packet;
 	packet.size = sizeof(packet);
 	packet.type = CS_PACKET_ATTACK;
+	packet.x = aim_x;
+	packet.y = aim_y;
 	do_send(sizeof(packet), &packet);
 }
 
@@ -175,14 +179,18 @@ void do_recv()
 			int p_id = packet->id;
 			
 			// 각 알맞는 클라에 넣어주기
-			
+			//int prev_x = mPlayer[p_id].x;
+			//int prev_x = mPlayer[p_id].x;
+
 			int pos_x = packet->pos_x;
 			int pos_y = packet->pos_y;
+
+
 			float aim_x = packet->aim_x;
 			float aim_y = packet->aim_y;
 
-			mPlayer[p_id].x = pos_x;
-			mPlayer[p_id].y = pos_y;
+			mPlayer[p_id].x = pos_x;//+(6000* gt.GetTimeElapsed())+(0.5f* pow(gt.GetTimeElapsed(),2));
+			mPlayer[p_id].y = pos_y;//+ (6000 * gt.GetTimeElapsed()) + (0.5f * pow(gt.GetTimeElapsed(), 2));
 			mPlayer[p_id].aim_x = aim_x;
 			mPlayer[p_id].aim_y = aim_x;
 			break;

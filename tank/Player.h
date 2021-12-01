@@ -28,6 +28,9 @@ public:
 	int getY();
 	int getSpd();
 	int gethp();
+	int getCursorX();
+	int getCursorY();
+
 
 	void setId(int get_id);
 	void setType();

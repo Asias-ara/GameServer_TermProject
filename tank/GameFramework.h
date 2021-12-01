@@ -1,4 +1,5 @@
 #pragma once
+#include <chrono>
 #include "Timer.h"
 #include "Player.h"
 #include "Wall.h"
@@ -14,6 +15,9 @@ public:
 	void FrameAdvance();
 
 	void SetActive(bool bActive) { m_bActive = bActive; }
+
+	chrono::steady_clock::time_point start_t;
+
 
 private:
 	HINSTANCE					m_hInstance = NULL;
