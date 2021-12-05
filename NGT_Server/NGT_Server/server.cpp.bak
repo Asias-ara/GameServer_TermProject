@@ -418,8 +418,14 @@ void process_client(int client_id, char* p)
 	case CS_PACKET_ATTACK:
 		cs_packet_attack* packet = reinterpret_cast<cs_packet_attack*>(p);
 		for (int i = (cl.m_id - 1) * 5; i <= (cl.m_id * 5) - 1; ++i) {		//0~4 : 1번플레이어 총알, 5~9 : 1번플레이어 총알, 10~14 : 3번플레이어 총알,{
+<<<<<<< Updated upstream
+			cl.m_aim_x = packet->x;
+			cl.m_aim_y = packet->y;
+			cout << cl.m_aim_x << "," << cl.m_aim_y << endl;
+=======
 			cl.m_aim_x = packet->aim_x;
 			cl.m_aim_y = packet->aim_y;
+>>>>>>> Stashed changes
 			BulletObject* bl = &bullets[i];
 			if (bl->getActive() == false) {
 				bl->setActive(true);

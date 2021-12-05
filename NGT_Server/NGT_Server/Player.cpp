@@ -17,7 +17,7 @@ Player::Player(SOCKET& s, int id) : m_c_socket(s), m_id(id), m_aim_x(0.f), m_aim
 
 Player::~Player()
 {
-	//closesocket(m_c_socket);
+
 }
 
 void Player::get_BoundingRect()

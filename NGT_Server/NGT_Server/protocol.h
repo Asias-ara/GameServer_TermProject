@@ -12,7 +12,6 @@ const int CLIENT_HEIGHT =480;
 
 //client to server
 const char CS_PACKET_MOVE = 1;
-const char CS_PACKET_AIM = 2;
 const char CS_PACKET_ATTACK = 3;
 
 //server to client
@@ -36,22 +35,14 @@ struct cs_packet_move {
 	char	direction;			// 0 : up,  1: down, 2:left, 3:right
 };
 
-//클라에서 탱크가 바라보고 있는 방향을 보낼때 사용
-struct cs_packet_aim
-{
-	char size;
-	char type;
-	float x;
-	float y;
-};
 
 
 //플레이어가 공격
 struct cs_packet_attack {
 	char size;
 	char type;
-	float x;
-	float y;
+	float aim_x;
+	float aim_y;
 };
 
 
@@ -104,6 +95,8 @@ struct sc_packet_fire {
 	char bullet_id;
 	float x;
 	float y;
+	float aim_x;
+	float aim_y;
 };
 
 struct sc_packet_bullet {

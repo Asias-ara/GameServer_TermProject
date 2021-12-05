@@ -1,0 +1,27 @@
+<<<<<<< HEAD
+// stdafx.cpp 표준 포함 파일만 들어있는 소스 파일입니다.
+=======
+
+>>>>>>> GameObjects_異⑸룎
+#include "stdafx.h"
+
+bool collide(const RECT& rect1, const RECT& rect2)
+{
+	if (rect1.left > rect2.right) return false;
+	if (rect1.top > rect2.bottom) return false;
+	if (rect1.right < rect2.left) return false;
+	if (rect1.bottom < rect2.top) return false;
+
+	return true;
+}
+
+void CharToWChar(const char* pstrSrc, wchar_t pwstrDest[])
+{
+<<<<<<< HEAD
+	int nlen = (int)strlen(pstrSrc) + 1;
+	mbstowcs(pwstrDest, pstrSrc, nlen);
+=======
+	int nLen = (int)strlen(pstrSrc) + 1;
+	mbstowcs(pwstrDest, pstrSrc, nLen);
+>>>>>>> GameObjects_異⑸룎
+}

@@ -8,9 +8,7 @@ UI::UI(HINSTANCE g_hinst,Player *p)
 	offset = 1.2f;
 	get_player(p);
 	bitmap = new GameBitmap * [UIBMP];
-	//GameBitmap* bmp =
 	bitmap[0] = new GameBitmap("img/hp_empty.bmp", g_hinst); //bmp;
-	//GameBitmap* bmp2 =
 	bitmap[1] = new GameBitmap("img/hp_full.bmp", g_hinst); //bmp2;
 }
 

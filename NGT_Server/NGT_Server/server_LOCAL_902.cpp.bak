@@ -334,8 +334,6 @@ void send_fire_packet(SOCKET* client_socket, int client_id, int bullet_id)
 	packet.bullet_id = bullet_id;
 	packet.x = bullets[bullet_id].getPos_x();
 	packet.y = bullets[bullet_id].getPos_y();
-	packet.aim_x = g_clients[client_id].m_aim_x;
-	packet.aim_y = g_clients[client_id].m_aim_y;
 	send(*client_socket, reinterpret_cast<const char*>(&packet), packet.size, 0);
 }
 
@@ -418,8 +416,9 @@ void process_client(int client_id, char* p)
 	case CS_PACKET_ATTACK:
 		cs_packet_attack* packet = reinterpret_cast<cs_packet_attack*>(p);
 		for (int i = (cl.m_id - 1) * 5; i <= (cl.m_id * 5) - 1; ++i) {		//0~4 : 1번플레이어 총알, 5~9 : 1번플레이어 총알, 10~14 : 3번플레이어 총알,{
-			cl.m_aim_x = packet->aim_x;
-			cl.m_aim_y = packet->aim_y;
+			cl.m_aim_x = packet->x;
+			cl.m_aim_y = packet->y;
+			cout << cl.m_aim_x << "," << cl.m_aim_y << endl;
 			BulletObject* bl = &bullets[i];
 			if (bl->getActive() == false) {
 				bl->setActive(true);

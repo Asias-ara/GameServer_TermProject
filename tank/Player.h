@@ -3,7 +3,6 @@
 #include "GameObject.h"
 #include "Bullet.h"
 
-#define BLTS 5
 #define MAXHP 3
 class Player : public GameObject {
 	int id;					// player id
@@ -19,7 +18,6 @@ class Player : public GameObject {
 	HDC pdc;
 public:
 	GameObject** other = NULL; //other object
-	BulletObject* bullets[BLTS];
 public:
 	Player(HINSTANCE g_hinst, char id, float x, float y);
 	~Player();
@@ -46,7 +44,7 @@ public:
 
 	void fire();
 	//키보드 방향키로 이동
-	void Move(DWORD dwDirection, float frame_time);
+	void Move(DWORD dwDirection);
 	void rotate(HWND m_hWnd);
 	//다른플레이어 이동시 방향 수정용 함수
 	void rotate2(float, float);
@@ -55,5 +53,4 @@ public:
 	virtual void update(HWND m_hWnd, float fTimeElapsed);
 	virtual void draw(const HDC& mem1dc);
 
-	void send_cursor(HWND m_hWnd);
 };

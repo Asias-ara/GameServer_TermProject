@@ -9,8 +9,6 @@ class Wall : public GameObject {
 public:
 	Wall(HINSTANCE g_hinst, float x, float y,float width,float height);
 
-	void ImagetoScreen();
-
 	virtual void get_BoundingRect(RECT& rect);
 	virtual void update();
 	virtual void draw(const HDC& mem1dc);

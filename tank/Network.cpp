@@ -70,7 +70,7 @@ int netInit()
 {
 	const char* SERVERIP;
 	SERVERIP = "127.0.0.1";
-
+	//SERVERIP = "210.99.123.68";
 	// 윈속 초기화
 	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
 		return 1;
@@ -85,7 +85,6 @@ int netInit()
 	server_addr.sin_family = AF_INET;
 	server_addr.sin_port = htons(SERVERPORT);
 	server_addr.sin_addr.s_addr = inet_addr(SERVERIP);
-	//inet_pton(AF_INET, SERVERIP, &server_addr.sin_addr);
 	int ret = connect(sock, (SOCKADDR*)&server_addr, sizeof(server_addr));
 	if (ret == SOCKET_ERROR) {
 		int err_num = WSAGetLastError();
@@ -93,7 +92,6 @@ int netInit()
 		err_quit("connect()");
 	}
 
-	do_recv();
 }
 
 int netclose()
@@ -111,8 +109,8 @@ void send_attack_packet(float aim_x, float aim_y)
 	cs_packet_attack packet;
 	packet.size = sizeof(packet);
 	packet.type = CS_PACKET_ATTACK;
-	packet.x = aim_x;
-	packet.y = aim_y;
+	packet.aim_x = aim_x;
+	packet.aim_y = aim_y;
 	do_send(sizeof(packet), &packet);
 }
 
@@ -125,15 +123,7 @@ void send_move_packet(int direction)
 	do_send(sizeof(packet), &packet);
 }
 
-void send_aim_packet(float x, float y)
-{
-	cs_packet_aim packet;
-	packet.size = sizeof(packet);
-	packet.type = CS_PACKET_AIM;
-	packet.x = x;
-	packet.y = y;
-	do_send(sizeof(packet), &packet);
-}
+
 
 void do_send(int num_bytes, void* mess)
 {
@@ -144,92 +134,98 @@ void do_send(int num_bytes, void* mess)
 	if (retval == SOCKET_ERROR) { err_display("SEND()"); }
 }
 
-void do_recv()
+DWORD WINAPI do_recv(LPVOID arg)
 {
-	//ZeroMemory(recv_buf, sizeof(recv_buf));
-	retval = recv(sock, recv_buf, sizeof(recv_buf), 0);
-	if (retval == SOCKET_ERROR) { err_display("RECV()");  return; }
-	char* p = recv_buf;
-	while (p < recv_buf + retval) {
-		unsigned char packet_size = *p;
-		char type = *(p + 1);
-		if (packet_size <= 0) break;
-		switch (type) {
-		case SC_PACKET_LOGIN_OK: {
-			sc_packet_login_ok* packet = reinterpret_cast<sc_packet_login_ok*>(p);
-			my_id = packet->id;
-			cout << my_id << endl;
-			break;
-		}
-		case SC_PACKET_OTHER_INFO: {
-			sc_packet_move* packet = reinterpret_cast<sc_packet_move*>(p);
-			// 다른 클라이언트를 그려주는 객체에 id부여
-			// 다른 클라이언트 객체.id = packet->id;
-			packet->id;
-			break;
-		}
-		case SC_PACKET_START_GAME: {
-			// 이제 렌더링을 시작
-			start_game = true;
-			break;
-		}
+	
+	while (true) {
+		retval = recv(sock, recv_buf, sizeof(recv_buf), 0);
+		if (retval == SOCKET_ERROR) { err_display("RECV()");  return 0; }
+		char* p = recv_buf;
+		while (p < recv_buf + retval) {
+			unsigned char packet_size = *p;
+			char type = *(p + 1);
+			if (packet_size <= 0) break;
+			switch (type) {
+			case SC_PACKET_LOGIN_OK: {
+				sc_packet_login_ok* packet = reinterpret_cast<sc_packet_login_ok*>(p);
+				my_id = packet->id;
+				cout << my_id << endl;
+				break;
+			}
+			case SC_PACKET_OTHER_INFO: {
+				sc_packet_move* packet = reinterpret_cast<sc_packet_move*>(p);
+				// 다른 클라이언트를 그려주는 객체에 id부여
+				// 다른 클라이언트 객체.id = packet->id;
+				packet->id;
+				break;
+			}
+			case SC_PACKET_START_GAME: {
+				// 이제 렌더링을 시작
+				start_game = true;
+				break;
+			}
 
-		case SC_PACKET_MOVE: {
-			sc_packet_move* packet = reinterpret_cast<sc_packet_move*> (p);
-			int p_id = packet->id;
-			
-			// 각 알맞는 클라에 넣어주기
-			//int prev_x = mPlayer[p_id].x;
-			//int prev_x = mPlayer[p_id].x;
-
-			int pos_x = packet->pos_x;
-			int pos_y = packet->pos_y;
+			case SC_PACKET_MOVE: {
+				sc_packet_move* packet = reinterpret_cast<sc_packet_move*> (p);
+				int p_id = packet->id;
 
 
-			float aim_x = packet->aim_x;
-			float aim_y = packet->aim_y;
+				int pos_x = packet->pos_x;
+				int pos_y = packet->pos_y;
 
-			mPlayer[p_id].x = pos_x;//+(6000* gt.GetTimeElapsed())+(0.5f* pow(gt.GetTimeElapsed(),2));
-			mPlayer[p_id].y = pos_y;//+ (6000 * gt.GetTimeElapsed()) + (0.5f * pow(gt.GetTimeElapsed(), 2));
-			mPlayer[p_id].aim_x = aim_x;
-			mPlayer[p_id].aim_y = aim_x;
-			break;
+
+				float aim_x = packet->aim_x;
+				float aim_y = packet->aim_y;
+
+				mPlayer[p_id].x = pos_x;
+				mPlayer[p_id].y = pos_y;
+				mPlayer[p_id].aim_x = aim_x;
+				mPlayer[p_id].aim_y = aim_x;
+				break;
+			}
+			case SC_PACKET_DEAD: {
+				sc_packet_dead* packet = reinterpret_cast<sc_packet_dead*>(p);
+				// 해당 id에 해당하는 id지워주기
+				mPlayer[packet->id].activate = false;
+				break;
+			}
+			case SC_PACKET_FIRE: {	
+				sc_packet_fire* packet = reinterpret_cast<sc_packet_fire*> (p);
+				int b_id = packet->bullet_id;
+				int p_id = packet->id;
+				mBullet[b_id].active = true;
+				mBullet[b_id].player_id = p_id;
+				mBullet[b_id].x = packet->x;
+				mBullet[b_id].y = packet->y;
+				
+				mPlayer[p_id].aim_x = packet->aim_x;
+				mPlayer[p_id].aim_y = packet->aim_y;
+
+				break;
+			}
+			case SC_PACKET_BULLET: {
+				sc_packet_bullet* packet = reinterpret_cast<sc_packet_bullet*>(p);
+				int b_id = packet->id;
+				mBullet[b_id].x = packet->x;
+				mBullet[b_id].y = packet->y;
+				break;
+			}
+			case SC_PACKET_HIT: {
+				sc_packet_hit* packet = reinterpret_cast<sc_packet_hit*> (p);
+				int p_id = packet->id;
+				cout << "hit" << p_id << endl;
+				// 나의 id면 hp유아이에서 체력 한칸을 없애주자
+				if (p_id == my_id) n_hp -= 1;
+				mBullet[packet->bullet_id].active = false;
+				break;
+			}
+			}
+			p = p + packet_size;
 		}
-		case SC_PACKET_DEAD: {
-			sc_packet_dead* packet = reinterpret_cast<sc_packet_dead*>(p);
-			// 해당 id에 해당하는 id지워주기
-			mPlayer[packet->id].activate = false;
-			break;
-		}
-		case SC_PACKET_FIRE: {	// 이거 총알을 클라에서 계산하기로 했지만
-			sc_packet_fire* packet = reinterpret_cast<sc_packet_fire*> (p);
-			int b_id = packet->bullet_id;
-			mBullet[b_id].active = true;
-			mBullet[b_id].player_id = packet->id;
-			mBullet[b_id].x = packet->x;
-			mBullet[b_id].y = packet->y;
-			break;
-		}
-		case SC_PACKET_BULLET: {
-			sc_packet_bullet* packet = reinterpret_cast<sc_packet_bullet*>(p);
-			int b_id = packet->id;
-			mBullet[b_id].x = packet->x;
-			mBullet[b_id].y = packet->y;
-			break;
-		}
-		case SC_PACKET_HIT: {
-			sc_packet_hit* packet = reinterpret_cast<sc_packet_hit*> (p);
-			int p_id = packet->id;
-			cout << "hit" << p_id << endl;
-			// 나의 id면 hp유아이에서 체력 한칸을 없애주자
-			if (p_id == my_id) n_hp -= 1;
-			mBullet[packet->bullet_id].active = false;
-			break;
-		}
-		}
-		p = p + packet_size;
+		
 	}
-	// memcpy(recv_buf, p, sizeof(*p));
+	return 0;
+	
 }
 
 bool get_start_game()

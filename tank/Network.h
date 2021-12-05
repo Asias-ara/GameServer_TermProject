@@ -16,14 +16,13 @@ int netclose();
 
 void send_attack_packet(float aim_x, float aim_y);
 
-void send_aim_packet(float x, float y);
 
 void send_move_packet(int direction);
 
 
 void do_send(int num_bytes, void* mess);
 
-void do_recv();
+DWORD WINAPI do_recv(LPVOID arg);
 
 bool get_start_game();
 
@@ -45,4 +44,3 @@ float get_bullet_x(int bullet_id);
 float get_bullet_y(int bullet_id);
 float get_bullet_active(int bullet_id);
 
-// void return_otherPlayer(CPlayer** m_otherPlayer, ID3D12Device* m_pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera);

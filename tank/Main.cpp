@@ -22,9 +22,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	// 네트워크 연결
 	netInit();
-
+	HANDLE hThread;
+	hThread = CreateThread(NULL, 0, do_recv, (LPVOID)NULL, 0, NULL);
 	while (true) {
-		do_recv();
 		if (get_start_game()) break;
 	}
 
@@ -35,12 +35,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	// TODO: 여기에 코드를 입력합니다.
 	MSG msg;
 	HACCEL hAccelTable;
-
+	
 	// 전역 문자열을 초기화합니다.
 	LoadString(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
 	LoadString(hInstance, IDC_TANK, szWindowClass, MAX_LOADSTRING);
 	MyRegisterClass(hInstance);
-
+	
 	// 응용 프로그램 초기화를 수행합니다.
 	if (!InitInstance(hInstance, nCmdShow))
 	{
@@ -66,9 +66,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			gameframework.FrameAdvance();
 		}
 
-		
-		// 여기서 recv처리
-		do_recv();
 	}
 	gameframework.OnDestroy();
 
@@ -126,8 +123,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 	switch (message)
 	{
-	/*case WM_CREATE:
-		gameframework.BuildObjects();*/
 	case WM_SIZE:
 		if (wParam == SIZE_MINIMIZED)
 		{

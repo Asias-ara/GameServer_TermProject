@@ -112,10 +112,21 @@ void GameFramework::ProcessInput()
 	
 	
 
-	if (dwDirection) m_pPlayer->Move(dwDirection);
+	if (dwDirection) m_pPlayer->Move(dwDirection, GameTimer.GetTimeElapsed());
 	
 	m_pPlayer->update(m_hWnd,GameTimer.GetTimeElapsed());
 
+	RECT o_crect,p_crect; //물체의 바운딩박스 플레이어의 바운딩박스
+	bool collided = false;
+
+	m_pPlayer->get_BoundingRect(p_crect);
+	for (int i = 0; i < NOBJECTS; ++i) //멀티 플레이시 이중for문으로 비교
+	{
+		objects[i]->get_BoundingRect(o_crect);
+		if (collide(o_crect, p_crect)) {
+			m_pPlayer->setPrevPos();//이전위치로 재설정
+		}
+	}
 }
 
 void GameFramework::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam)
@@ -130,9 +141,14 @@ void GameFramework::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM 
 		cout << "Mouse X :" << pt.x << " Mouse Y :" << pt.y << endl;
 #endif
 		break;
+<<<<<<< Updated upstream
+	case WM_LBUTTONDOWN: 
+		m_pPlayer->rotate(hWnd);
+=======
 	case WM_LBUTTONDOWN:
 		m_pPlayer->rotate(m_hWnd);
 
+>>>>>>> Stashed changes
 		send_attack_packet( m_pPlayer->getCursorX(), m_pPlayer->getCursorY());
 		break;
 	
@@ -227,7 +243,7 @@ void GameFramework::FrameAdvance()
 		other->rotate2(get_Position_x(other->getId()), get_Position_y(other->getId()));
 		other->setX(get_Position_x(other->getId()));
 		other->setY(get_Position_y(other->getId()));
-		
+		//other->rotate(m_hWnd);
 	}
 
 	//UI가 가지고있는 플레이어에 대한 정보를 업데이트 시켜줌

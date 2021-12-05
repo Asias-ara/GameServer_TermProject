@@ -90,11 +90,12 @@ void Player::fire()
 	
 }
 
-void Player::Move(DWORD dwDirection)
+void Player::Move(DWORD dwDirection, float frame_time)
 {
-
+	//프레임타임을 곱하는 이유는 컴퓨터차이로 인한 속도차이를 없애기위해서
 	if (dwDirection)
 	{
+		float dx = 0, dy = 0;
 		if (dwDirection & DIR_FORWARD) 
 		{
 			dir = 0;
@@ -116,18 +117,19 @@ void Player::Move(DWORD dwDirection)
 			send_move_packet(2); 
 		}
 
+		this->dx = dx;
+		this->dy = dy;
 
 	}
 }
 
 void Player::rotate(HWND m_hWnd)
 {
+	GetCursorPos(&CursorPos);
 	CursorPos.x = get_Aim_x(id);
 	CursorPos.y = get_Aim_y(id);
-	if (id == get_my_id()) {
-		GetCursorPos(&CursorPos);
-		ScreenToClient(m_hWnd, &CursorPos);
-	}
+	ScreenToClient(m_hWnd, &CursorPos);
+
 	float dx = 0;
 	float dy = 0;
 

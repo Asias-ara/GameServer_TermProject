@@ -17,8 +17,6 @@ using namespace std;
 
 
 //값 다시 가져와야함
-const int bullet_width = 50;
-const int bullet_height = 50;
 
 const int wall_width = 50;
 const int wall_height = 50;
