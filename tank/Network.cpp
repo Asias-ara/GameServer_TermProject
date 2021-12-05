@@ -1,12 +1,10 @@
 #include "stdafx.h"
 #include "Network.h"
-#include"Timer.h"
 //#include <WS2tcpip.h>
 
 WSADATA wsa;
 SOCKET sock;
 SOCKADDR_IN serveraddr;
-GameTimer gt;
 int my_id = 0;
 int retval = 0;
 char send_buf[BUFSIZE];
