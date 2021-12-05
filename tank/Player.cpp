@@ -269,7 +269,7 @@ void Player::rotate2(float nx ,float ny)
 		else if (dy < 0) dir = 1;
 	}
 }
-void Player::update(HWND m_hWnd, float fTimeElapsed)
+void Player::update(HWND m_hWnd)
 {
 
 	get_BoundingRect(collision_rect); //플레이어의 바운딩박스를 업데이트

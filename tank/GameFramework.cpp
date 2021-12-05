@@ -114,7 +114,7 @@ void GameFramework::ProcessInput()
 
 	if (dwDirection) m_pPlayer->Move(dwDirection);
 	
-	m_pPlayer->update(m_hWnd,GameTimer.GetTimeElapsed());
+	m_pPlayer->update(m_hWnd);
 
 }
 
@@ -174,13 +174,7 @@ LRESULT GameFramework::OnProcessingWindowMessage(HWND hWnd, UINT nMessageID, WPA
 	switch (nMessageID)
 	{
 	case WM_ACTIVATE:
-	{
-		if (LOWORD(wParam) == WA_INACTIVE)
-			GameTimer.Stop();
-		else
-			GameTimer.Start();
 		break;
-	}
 	case WM_SIZE:
 		break;
 	case WM_LBUTTONDOWN:
@@ -212,7 +206,6 @@ void GameFramework::FrameAdvance()
 {
 	if (!m_bActive) return;
 
-	GameTimer.Tick(0.0f);
 
 	ProcessInput();
 
@@ -233,8 +226,6 @@ void GameFramework::FrameAdvance()
 	//UI가 가지고있는 플레이어에 대한 정보를 업데이트 시켜줌
 	m_pUI->update(m_pPlayer);
 
-	float fTimeElapsed = GameTimer.GetTimeElapsed();
-	//애니메이션
 
 	ClearFrameBuffer(RGB(255, 255, 255));
 	
@@ -283,7 +274,7 @@ void GameFramework::FrameAdvance()
 	for (auto& other : m_pOther) {
 		if (get_activate(other->getId()) == false) continue;
 		other->draw(hDCFrameBuffer);
-		other->update(m_hWnd,GameTimer.GetTimeElapsed());
+		other->update(m_hWnd);
 	}
 	if (get_activate(m_pPlayer->getId())) {
 		m_pPlayer->draw(hDCFrameBuffer);
@@ -292,7 +283,6 @@ void GameFramework::FrameAdvance()
 
 	PresentFrameBuffer();
 
-	GameTimer.GetFrameRate(szFrameRate + 12, 37);
-	::SetWindowText(m_hWnd, szFrameRate);
+	
 
 }

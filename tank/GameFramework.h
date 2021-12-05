@@ -1,6 +1,5 @@
 #pragma once
 #include <chrono>
-#include "Timer.h"
 #include "Player.h"
 #include "Wall.h"
 #include "UI.h"
@@ -24,8 +23,6 @@ private:
 	HWND						m_hWnd = NULL;
 
 	bool						m_bActive = true;
-
-	GameTimer					GameTimer;
 
 	HDC							hDCFrameBuffer = NULL;
 	HBITMAP						m_hBitmapFrameBuffer = NULL;

@@ -50,7 +50,7 @@ public:
 	void rotate2(float, float);
 
 	virtual void get_BoundingRect(RECT& rect);
-	virtual void update(HWND m_hWnd, float fTimeElapsed);
+	virtual void update(HWND m_hWnd);
 	virtual void draw(const HDC& mem1dc);
 
 };
