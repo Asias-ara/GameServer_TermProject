@@ -10,6 +10,7 @@ UI::UI(HINSTANCE g_hinst,Player *p)
 	bitmap = new GameBitmap * [UIBMP];
 	bitmap[0] = new GameBitmap("img/hp_empty.bmp", g_hinst); //bmp;
 	bitmap[1] = new GameBitmap("img/hp_full.bmp", g_hinst); //bmp2;
+	bitmap[2] = new GameBitmap("img/gameover.bmp", g_hinst); //bmp2;
 }
 
 void UI::get_player(Player* p)
@@ -33,5 +34,12 @@ void UI::draw(const HDC& mem1dc)
 	{
 		if (bitmap[1])
 			bitmap[1]->draw(mem1dc, uidc, x + i * bitmap[1]->getWidth()*offset, y);
+	}
+	if (bitmap[2])
+	{
+		if (player->gethp() == 0)
+		{
+			bitmap[2]->draw(mem1dc, uidc, CLIENT_WIDTH/2, CLIENT_HEIGHT/2);
+		}
 	}
 }

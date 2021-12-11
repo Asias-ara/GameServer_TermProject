@@ -3,13 +3,14 @@
 #include "GameObject.h"
 #include "Player.h"
 
-#define UIBMP 2
+#define UIBMP 3
 
 
 
 class UI {
 	int x, y;
 	float offset = 0; //하트사이의 간격을 조절하는 값입니다.
+	bool game_ovver = false;
 	Player* player = NULL;	//클라이언트의 플레이어객체를 가리킨다.
 	GameBitmap** bitmap = NULL;
 	HDC uidc;
