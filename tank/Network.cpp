@@ -134,15 +134,29 @@ void do_send(int num_bytes, void* mess)
 
 DWORD WINAPI do_recv(LPVOID arg)
 {
-	
+	int prev_data = 0;
+	char temp[BUFSIZE*2];
+	int r_retval = 0;
 	while (true) {
-		retval = recv(sock, recv_buf, sizeof(recv_buf), 0);
-		if (retval == SOCKET_ERROR) { err_display("RECV()");  return 0; }
-		char* p = recv_buf;
-		while (p < recv_buf + retval) {
-			unsigned char packet_size = *p;
-			char type = *(p + 1);
-			if (packet_size <= 0) break;
+		r_retval = recv(sock, recv_buf, sizeof(recv_buf), 0);
+		if (r_retval == SOCKET_ERROR) { err_display("RECV()");  return 0; }
+		
+		if (r_retval != 0) {
+			if (prev_data == 0) {
+				ZeroMemory(temp, BUFSIZE * 2);
+				strcpy_s(temp, recv_buf);
+			}
+			else
+				strncat_s(temp, sizeof(temp), recv_buf, r_retval);
+		}
+
+		r_retval += prev_data;
+		char* p = temp;
+
+		while (p < temp + r_retval) {
+			// char packet_size = *p;
+			int packet_size = *p;
+			unsigned char type = *(p + 1);
 			switch (type) {
 			case SC_PACKET_LOGIN_OK: {
 				sc_packet_login_ok* packet = reinterpret_cast<sc_packet_login_ok*>(p);
@@ -219,6 +233,13 @@ DWORD WINAPI do_recv(LPVOID arg)
 			}
 			}
 			p = p + packet_size;
+			r_retval -= packet_size;	// 처리하고자 하는 데이터의 양이 다 들어왔는가 판단
+			if (r_retval <= 0) {
+				prev_data = r_retval + packet_size;
+				memcpy(temp, p, prev_data);
+				r_retval = 0;
+				break;
+			}
 		}
 		
 	}
