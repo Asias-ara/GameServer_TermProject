@@ -24,10 +24,10 @@ private:
 
 	bool						m_bActive = true;
 
+
 	HDC							hDCFrameBuffer = NULL;
 	HBITMAP						m_hBitmapFrameBuffer = NULL;
 
-	
 	BG* m_pBG = NULL;
 	UI* m_pUI = NULL;
 	Player* m_pPlayer = NULL; //멀티 플레이시 이중포인터로 바꿔주어야함

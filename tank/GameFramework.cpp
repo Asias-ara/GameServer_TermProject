@@ -131,8 +131,6 @@ void GameFramework::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM 
 #endif
 		break;
 	case WM_LBUTTONDOWN:
-		m_pPlayer->rotate(m_hWnd);
-
 		send_attack_packet( m_pPlayer->getCursorX(), m_pPlayer->getCursorY());
 		break;
 	
@@ -215,14 +213,14 @@ void GameFramework::FrameAdvance()
 	m_pPlayer->setY(get_MyPosition_y());
 	m_pPlayer->set_hp(get_my_hp());
 	
+	
 
 	for (auto& other: m_pOther) {
 		other->rotate2(get_Position_x(other->getId()), get_Position_y(other->getId()));
 		other->setX(get_Position_x(other->getId()));
 		other->setY(get_Position_y(other->getId()));
-		
 	}
-
+	
 	//UI가 가지고있는 플레이어에 대한 정보를 업데이트 시켜줌
 	m_pUI->update(m_pPlayer);
 

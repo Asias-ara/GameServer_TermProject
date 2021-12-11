@@ -11,8 +11,8 @@ class Player : public GameObject {
 	float px, py;			// prior position
 	float spd;				// speed 
 	GameBitmap** pbmp = NULL;
-	GameBitmap** phbmp = NULL;
-	int dir = 0,hdir = 0;				//0 top 1bottom 2right 3left
+	GameBitmap* phbmp = NULL;
+	int dir = 0;				//0 top 1bottom 2right 3left
 	POINT CursorPos;
 	RECT collision_rect;	// collision rect
 	HDC pdc;
@@ -45,7 +45,6 @@ public:
 	void fire();
 	//키보드 방향키로 이동
 	void Move(DWORD dwDirection);
-	void rotate(HWND m_hWnd);
 	//다른플레이어 이동시 방향 수정용 함수
 	void rotate2(float, float);
 

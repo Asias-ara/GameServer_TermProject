@@ -19,15 +19,12 @@ Player::Player(HINSTANCE g_hinst, char id, float x, float y)
 	pbmp[1] = new GameBitmap("img/tank1.bmp", g_hinst);
 	pbmp[2] = new GameBitmap("img/tank2.bmp", g_hinst);
 	pbmp[3] = new GameBitmap("img/tank3.bmp", g_hinst);
-	phbmp = new GameBitmap * [4];
-	phbmp[0] = new GameBitmap("img/tank_head0.bmp", g_hinst);
-	phbmp[1] = new GameBitmap("img/tank_head1.bmp", g_hinst);
-	phbmp[2] = new GameBitmap("img/tank_head2.bmp", g_hinst);
-	phbmp[3] = new GameBitmap("img/tank_head3.bmp", g_hinst);
+	phbmp = new GameBitmap("img/tank_head0.bmp", g_hinst);
+
 	for (int i = 0; i < 4; ++i)
 	{
 		pbmp[i]->set_scale(0.2f,0.2f);
-		phbmp[i]->set_scale(0.2f,0.2f);
+		phbmp->set_scale(0.2f,0.2f);
 	}
 
 	get_BoundingRect(collision_rect);
@@ -120,34 +117,6 @@ void Player::Move(DWORD dwDirection)
 	}
 }
 
-void Player::rotate(HWND m_hWnd)
-{
-	CursorPos.x = get_Aim_x(id);
-	CursorPos.y = get_Aim_y(id);
-	if (id == get_my_id()) {
-		GetCursorPos(&CursorPos);
-		ScreenToClient(m_hWnd, &CursorPos);
-	}
-	float dx = 0;
-	float dy = 0;
-
-	POINT start;
-	start.x = x; start.y = y;
-
-	Normalize(start, CursorPos, dx, dy); 
-
-	if (abs(dx) > abs(dy))
-	{
-		if (dx > 0) hdir = 2;
-		else if (dx < 0) hdir = 3;
-	}
-	else if (abs(dx) < abs(dy))
-	{
-		if (dy > 0) hdir = 1;
-		else if (dy < 0) hdir = 0;
-	}
-}
-
 int Player::getCursorX()
 {
 	return CursorPos.x;
@@ -160,87 +129,8 @@ int Player::getCursorY()
 void Player::draw(const HDC& mem1dc)
 {
 	GameObject::draw(mem1dc, collision_rect);
-	float xoffset = 0;
-	float yoffset = 0;
 	if (pbmp[dir])pbmp[dir]->draw(mem1dc, pdc, x, y);
-	if (dir != hdir)
-	{
-		if (dir == 0)
-		{
-			if (hdir == 1)
-			{
-				yoffset = 10;
-			}
-			else if (hdir == 2)
-			{
-				xoffset = 10;
-				yoffset = 5;
-
-			}
-			else if (hdir == 3)
-			{
-				xoffset = -10;
-				yoffset = 5;
-			}
-
-		}
-		else if (dir == 1)
-		{
-			if (hdir == 0)
-			{
-				yoffset = -15;
-			}
-			else if (hdir == 2)
-			{
-				xoffset = 10;
-				yoffset = -5;
-
-			}
-			else if (hdir == 3)
-			{
-				xoffset = -10;
-				yoffset = -5;
-			}
-		}
-		else if (dir == 2)
-		{
-			if (hdir == 0)
-			{
-				xoffset = -5;
-				yoffset = -5;
-			}
-			else if (hdir == 1)
-			{
-				xoffset = -5;
-				yoffset = 5;
-
-			}
-			else if (hdir == 3)
-			{
-				xoffset = -15;
-
-			}
-		}else if (dir == 3)
-		{
-			if (hdir == 0)
-			{
-				xoffset = 5;
-				yoffset = -5;
-			}
-			else if (hdir == 1)
-			{
-				xoffset = 5;
-				yoffset = 5;
-
-			}
-			else if (hdir == 2)
-			{
-				xoffset = 15;
-
-			}
-		}
-	}
-	if (phbmp[hdir])phbmp[hdir]->draw(mem1dc, pdc, x+xoffset, y+yoffset);
+	if (phbmp)phbmp->draw(mem1dc, pdc, x, y);
 	
 
 }
@@ -273,8 +163,9 @@ void Player::update(HWND m_hWnd)
 {
 
 	get_BoundingRect(collision_rect); //플레이어의 바운딩박스를 업데이트
-
-
+	
+	GetCursorPos(&CursorPos);
+	ScreenToClient(m_hWnd, &CursorPos);
 
 	//이전위치 업데이트
 	px = x;
